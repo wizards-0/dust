@@ -1,0 +1,24 @@
+@use '@angular/material' as mat;
+
+.dust-button-wrapper {
+    display: flex;
+    padding: 5px;
+}
+
+button.dust-button {
+    display: flex;
+    min-width: 64px;
+    height: 36px;
+    @include mat.elevation(3);
+    border: none;
+    background-color: var(--primary-color);
+    border-radius: 5px;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-text);
+}
+
+button.dust-button:hover {
+    background-color: var(--primary-highlight);
+    @include mat.elevation(5);
+}
