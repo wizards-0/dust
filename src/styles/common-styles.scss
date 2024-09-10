@@ -1,0 +1,11 @@
+.bottom-divider {
+    border-bottom : solid 1px var(--divider);
+}
+
+.top-divider {
+    border-top : solid 1px var(--divider);
+}
+
+tr.h-0 {
+    height: 0;
+}

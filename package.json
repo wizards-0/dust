@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "tailwind": "tailwind -o public/tailwind-build.css --watch",
+    "dev": "concurrently \"npm start\" \"npm run tailwind\""
   },
   "private": true,
   "dependencies": {
@@ -17,9 +19,14 @@
     "@angular/core": "^18.1.0",
     "@angular/forms": "^18.1.0",
     "@angular/material": "^18.1.2",
+    "@angular/material-luxon-adapter": "^18.1.2",
     "@angular/platform-browser": "^18.1.0",
     "@angular/platform-browser-dynamic": "^18.1.0",
     "@angular/router": "^18.1.0",
+    "ace-common-components": "^1.0.0",
+    "ace-common-util": "^1.0.20",
+    "immutable": "^4.3.7",
+    "luxon": "^3.4.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
@@ -29,12 +36,16 @@
     "@angular/cli": "^18.1.2",
     "@angular/compiler-cli": "^18.1.0",
     "@types/jasmine": "~5.1.0",
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^22.0.0",
+    "concurrently": "^8.2.2",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "tailwindcss": "^3.4.7",
     "typescript": "~5.5.2"
   }
 }

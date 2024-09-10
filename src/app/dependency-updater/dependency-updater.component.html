@@ -1,0 +1,79 @@
+<div id="dependencyUpdaterContainer" class="flex flex-col basis-full h-full">
+    <div id="buildFileSection" class="flex flex-row w-full justify-center pt-8">
+        <div id="buildFileContent" class="flex flex-col mat-elevation-z4 rounded-lg overflow-hidden">
+
+            <div id="buildFileHeader" class="flex flex-row bg-primary text-on-primary justify-center text-lg p-2">Build File</div>
+            <div id="packageJsonImportSection" class="flex flex-row items-center bottom-divider px-4 pt-4">
+                <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">Node Package Json</mat-label>
+                <mat-form-field class="flex" id="packageJsonInputField" appearance="outline">
+                    <mat-label>package.json content</mat-label>
+                    <textarea matInput [formControl]="packageJsonInput" class="flex overflow-hidden"></textarea>
+                </mat-form-field>
+                <ace-button class="mb-5 ml-2" color="primary" (click)="processPackageJson()">Check</ace-button>
+            </div>
+            <div id="buildGradleImportSection" class="flex flex-row items-center px-4 pt-4">
+                <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">Gradle build file (build.gradle / settings.gradle)</mat-label>
+                <mat-form-field class="flex" id="buildGradleInputField" appearance="outline">
+                    <mat-label>build.gradle / settings.gradle content</mat-label>
+                    <textarea matInput [formControl]="gradleFileInput" class="flex overflow-hidden"></textarea>
+                </mat-form-field>
+                <ace-button class="mb-5 ml-2" color="primary" (click)="processBuildGradle()">Check</ace-button>
+            </div>
+
+            @if((packageJsonParsed || gradleFileParsed) && parseSucceeded) {
+            <div id="packageUpdateSection" class="flex flex-row items-center top-divider p-4">
+                <mat-label class="flex flex-grow items-center">
+                    <span class="text-base text-on-surface">Mark all as updated</span>
+                    <div class="text-primary">
+                        <button mat-icon-button #tooltip="matTooltip" (click)="tooltip.toggle()" color="primary"
+                            matTooltip="NOT Recommended. You should select all versions manually at least first time, to ensure not anything is skipped. It will record the date when the action was performed, and it will automatically mark the inspected dependencies as updated for future inspections. The period for auto marking is 30 days. So in subsequent runs, you only need to inspect dependencies which were not inspected in last 30 days.">
+                            <mat-icon class="text-primary">info</mat-icon>
+                        </button>
+                    </div>
+                </mat-label>
+                <ace-button class="flex" color="warn" (click)="markAll()">Mark</ace-button>
+            </div>
+            }
+            @if(packageJsonParsed && parseSucceeded) {
+            <div id="packageJsonDownloadSection" class="flex flex-row items-center top-divider p-4">
+                <mat-label class="flex flex-grow text-base text-on-surface items-center">Copy updated package json to clipboard</mat-label>
+                <ace-button class="flex" color="primary" (click)="copyPackageJson()">Copy</ace-button>
+            </div>
+            }
+            @if(gradleFileParsed && parseSucceeded) {
+            <div id="buildGradleDownloadSection" class="flex flex-row items-center top-divider p-4">
+                <mat-label class="flex flex-grow text-base text-on-surface items-center">Copy updated gradle file to clipboard</mat-label>
+                <ace-button class="flex" color="primary" (click)="copyGradleFile()">Copy</ace-button>
+            </div>
+            }
+        </div>
+    </div>
+
+    @if(buildFileReceived && !(packageJsonParsed || gradleFileParsed) ) {
+    <div id="dependenciesDetailsFetchSpinner" class="flex flex-grow flex-row w-full justify-center items-center">
+        <mat-spinner></mat-spinner>
+    </div>
+    }
+
+    @if(packageJsonParsed) {
+        @if(!dependenciesDataSource.value.isEmpty()){
+            <dependency-update-selector buildType="node" label="Dependencies" [dataSource]="dependenciesDataSource"
+                class="flex w-full box-border p-8"></dependency-update-selector>
+        }
+        @if(!devDependenciesDataSource.value.isEmpty()){
+            <dependency-update-selector buildType="node" label="Dev Dependencies" [dataSource]="devDependenciesDataSource"
+            class="flex w-full box-border p-8"></dependency-update-selector>    
+        }
+    }
+
+    @if(gradleFileParsed) {
+        @if(!dependenciesDataSource.value.isEmpty()){
+            <dependency-update-selector buildType="gradle" label="Dependencies" [dataSource]="dependenciesDataSource"
+            class="flex w-full box-border p-8"></dependency-update-selector>
+        }
+        @if(!pluginDependenciesDataSource.value.isEmpty()){
+            <dependency-update-selector buildType="gradle" label="Plugin Dependencies"
+            [dataSource]="pluginDependenciesDataSource" class="flex w-full box-border p-8"></dependency-update-selector>    
+        }
+    }
+</div>

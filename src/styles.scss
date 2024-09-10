@@ -1,37 +1,20 @@
 
 @use '@angular/material' as mat;
+@use 'ace-common-components' as acc;
+@use 'styles/m3-theme';
+@use 'styles/common-styles';
+@use 'styles/scrollbar';
 
 @include mat.core();
 
-
-$dust-theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$azure-palette,
-    tertiary: mat.$blue-palette,
-  ),
-  density: (
-    scale: 0,
-  )
-));
-
-$dust-theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$azure-palette,
-    tertiary: mat.$blue-palette,
-  ),
-  density: (
-    scale: 0,
-  )
-));
-
 :root {
-  @include mat.all-component-themes($dust-theme);
+  @include mat.all-component-themes(m3-theme.$light-theme);
+  @include acc.all-component-themes(m3-theme.$light-theme);
 }
 
 .dark-theme {
-  @include mat.all-component-themes($dust-theme);
+  @include mat.all-component-colors(m3-theme.$dark-theme);
+  @include acc.all-component-themes(m3-theme.$dark-theme);
 }
 
 html, body { height: 100%; }
