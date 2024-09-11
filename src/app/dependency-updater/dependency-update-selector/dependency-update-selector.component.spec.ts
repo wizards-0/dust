@@ -1,4 +1,4 @@
-import { MockedObjects } from '../../../test/mocked-objects';
+import { MockedObjects } from '../../../test/mocks/mocked-objects';
 
 import { DependencyUpdateSelectorComponent } from './dependency-update-selector.component';
 

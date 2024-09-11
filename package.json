@@ -8,7 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "tailwind": "tailwind -o public/tailwind-build.css --watch",
-    "dev": "concurrently \"npm start\" \"npm run tailwind\""
+    "dev": "concurrently \"npm start\" \"npm run tailwind\"",
+    "coverage": "ng test --no-watch --code-coverage"
   },
   "private": true,
   "dependencies": {

@@ -42,8 +42,8 @@ export class DependencyUpdaterComponent {
   devDependenciesDataSource = new BehaviorSubject<List<Dependency>>(List([]));
   pluginDependenciesDataSource = new BehaviorSubject<List<Dependency>>(List([]));
 
-  private nodeProcessor: NodeProcessor;
-  private gradleProcessor: GradleProcessor;
+  nodeProcessor: NodeProcessor;
+  gradleProcessor: GradleProcessor;
   constructor(httpClient: HttpClient, private clipboard: Clipboard, private cdr: ChangeDetectorRef,private alertService:AlertService) {
     this.nodeProcessor = new NodeProcessor(httpClient);
     this.gradleProcessor = new GradleProcessor(httpClient);
@@ -66,13 +66,13 @@ export class DependencyUpdaterComponent {
         this.dependenciesDataSource.next(deps);
         dependenciesFetched = true;
         this.packageJsonParsed = dependenciesFetched && devDependenciesFetched;
-        this.validateResultIsNotEmptyAndUpdateView();
+        this.validateNodeResultAndUpdateView();
       });
       response.devDependencyList$.subscribe(deps => {
         this.devDependenciesDataSource.next(deps);
         devDependenciesFetched = true;
         this.packageJsonParsed = dependenciesFetched && devDependenciesFetched;
-        this.validateResultIsNotEmptyAndUpdateView();
+        this.validateNodeResultAndUpdateView();
       });
     } catch(err:any){
       this.packageJsonParsed = true;
@@ -91,9 +91,11 @@ export class DependencyUpdaterComponent {
 
     const dependencies = this.dependenciesDataSource.value.map(copyCurrentToUpdateVersion);
     const devDependencies = this.devDependenciesDataSource.value.map(copyCurrentToUpdateVersion);
+    const pluginDependencies = this.pluginDependenciesDataSource.value.map(copyCurrentToUpdateVersion);
 
     this.dependenciesDataSource.next(dependencies);
     this.devDependenciesDataSource.next(devDependencies);
+    this.pluginDependenciesDataSource.next(pluginDependencies);
     this.alertService.show('Marked all current dependencies as updated',AlertCategory.info,2000);
   }
 
@@ -121,13 +123,13 @@ export class DependencyUpdaterComponent {
       this.dependenciesDataSource.next(deps);
       dependenciesFetched = true;
       this.gradleFileParsed = dependenciesFetched && pluginsFetched;
-      this.validateResultIsNotEmptyAndUpdateView();
+      this.validateGradleResultAndUpdateView();
     });
     response.pluginDependencyList$.subscribe(deps => {
       this.pluginDependenciesDataSource.next(deps);
       pluginsFetched = true;
       this.gradleFileParsed = dependenciesFetched && pluginsFetched;
-      this.validateResultIsNotEmptyAndUpdateView();
+      this.validateGradleResultAndUpdateView();
     });
   }
 
@@ -137,10 +139,21 @@ export class DependencyUpdaterComponent {
     this.alertService.show('Updated gradle build file copied to clipboard',AlertCategory.success,2000);
   }
 
-  private validateResultIsNotEmptyAndUpdateView() {
-    if (this.packageJsonParsed || this.gradleFileParsed) {
+  validateNodeResultAndUpdateView() {
+    if (this.packageJsonParsed) {
       if (this.dependenciesDataSource.value.isEmpty()
-        && this.devDependenciesDataSource.value.isEmpty()
+        && this.devDependenciesDataSource.value.isEmpty()) {
+          this.alertService.show('No dependencies found. Invalid build file / Unsupported format.',AlertCategory.error);        
+      } else {
+        this.parseSucceeded = true;
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  validateGradleResultAndUpdateView() {
+    if (this.gradleFileParsed) {
+      if (this.dependenciesDataSource.value.isEmpty()
         && this.pluginDependenciesDataSource.value.isEmpty()) {
           this.alertService.show('No dependencies found. Invalid build file / Unsupported format.',AlertCategory.error);        
       } else {
@@ -152,8 +165,8 @@ export class DependencyUpdaterComponent {
 
 }
 
-export function getVersionWithRelativeDownloads(ver: Version, maxDownloads: number | undefined): Version {  
-  return ver.toBuilder()
-    .relativeDownloads(Math.round(ver.downloads / (maxDownloads ?? 0) * 100))
-    .build();
+export function getVersionWithRelativeDownloads(ver: Version, maxDownloads: number | undefined): Version {
+  return maxDownloads
+  ? ver.toBuilder().relativeDownloads(Math.round(ver.downloads / maxDownloads * 100)).build()
+  : ver.toBuilder().relativeDownloads(0).build();
 }
