@@ -34,6 +34,7 @@ import { AsyncPipe } from '@angular/common';
 export class DependencyUpdateSelectorComponent {
 
   _buildType:string = '';
+  //@Output, will hold the same reference of behavior subject as parent on init. Any emits on this datasource will be received by parent
   _dataSource:BehaviorSubject<List<Dependency>> = new BehaviorSubject(List());
   depsArr$:Observable<Dependency[]> = of([]);
 
@@ -68,7 +69,7 @@ export class DependencyUpdateSelectorComponent {
   
   currentDependency:Dependency | null = null;
 
-  selectUpdatedVersion(rowIndex:number) {
+  updateDependencyVersion(rowIndex:number) {
     let dependencies = this._dataSource.value;
     let dependencyToUpdate = dependencies.get(rowIndex,Dependency.empty())
     .with(dep => {
@@ -93,6 +94,7 @@ export class DependencyUpdateSelectorComponent {
   selectDependency(element:Dependency,$event:any):void {
     if(this.currentDependency === element){
       this.currentDependency = null;
+      this.updateVersionTemp.next('');
     } else {
       this.currentDependency = element;
       this.updateVersionTemp.next(element.updateVersion ? element.updateVersion : element.currentVersion);
@@ -106,6 +108,6 @@ export class DependencyUpdateSelectorComponent {
   }
 
   getNAForNegativeValue(value:number) {
-    return value < 0 ? 'NA' : value;
+    return value < 0 ? 'NA' : value+'';
   }
 }

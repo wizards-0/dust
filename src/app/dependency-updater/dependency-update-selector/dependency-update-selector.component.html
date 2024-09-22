@@ -52,7 +52,7 @@
                                     (change)="updateVersionTemp.next( $any($event.target).value); $event.stopPropagation()">
                             </mat-form-field>
                             <ace-button class="ml-2 mb-5" color="primary"
-                                (click)="selectUpdatedVersion(rowIndex)">Select</ace-button>
+                                (click)="updateDependencyVersion(rowIndex)">Select</ace-button>
                         </div>
                         @if(!element.versions.isEmpty()){
                         <div class="border border-solid border-divider-color rounded-lg overflow-hidden">

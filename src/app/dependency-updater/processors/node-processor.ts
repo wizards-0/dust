@@ -16,7 +16,7 @@ export class NodeProcessor {
   constructor(private httpClient: HttpClient) { }
 
 
-  processPackageJson(packageJson: string) {
+  public processPackageJson(packageJson: string) {
     try{
       this.packageJson = JSON.parse(packageJson);
     } catch(err){
@@ -37,7 +37,7 @@ export class NodeProcessor {
     }
   }
 
-  private parseDependencies(dependencies: Map<any, any>, dependencyUpdatedOn: Map<string, number>): List<Dependency> {
+  parseDependencies(dependencies: Map<any, any>, dependencyUpdatedOn: Map<string, number>): List<Dependency> {
     return List(dependencies.entrySeq().map(entry => {
       let name = entry[0] as string;
       let currentVersion = entry[1];
@@ -64,7 +64,7 @@ export class NodeProcessor {
     }));
   }
 
-  private fetchVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
+  fetchVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
 
     let dependencyDownloadInfoResp = dependencies.map(dep => this.fetchDownloadDetails(dep));
 
@@ -86,7 +86,7 @@ export class NodeProcessor {
     return accumulatedVersionInfoResp;
   }
 
-  private fetchDownloadDetails(dep: Dependency) {
+  fetchDownloadDetails(dep: Dependency) {
     let downloadInfoUrl = Api.NodeDownload.replace('${packageName}',encodeURIComponent(dep.name))
     return this.httpClient.get(downloadInfoUrl)
       .pipe(map((downloadInfo: any) => {
@@ -101,7 +101,7 @@ export class NodeProcessor {
       }));
   }
 
-  private fetchVersionDetails(dep: Dependency) {
+  fetchVersionDetails(dep: Dependency) {
     let packageInfoUrl = Api.NodePackage.replace('${packageName}',encodeURIComponent(dep.name))
     return this.httpClient.get(packageInfoUrl)
       .pipe(map((packageInfo: any) => {
@@ -128,7 +128,7 @@ export class NodeProcessor {
       }));
   }
 
-  getUpdatedPackageJson(dependencyList: List<Dependency>, devDependencyList: List<Dependency>): string {
+  public getUpdatedPackageJson(dependencyList: List<Dependency>, devDependencyList: List<Dependency>): string {
 
     const dependencies = this.transfromDependencyListToMap(dependencyList);
     const devDependencies = this.transfromDependencyListToMap(devDependencyList);
@@ -146,7 +146,7 @@ export class NodeProcessor {
     return JSON.stringify(this.packageJson);
   }
 
-  private transfromDependencyListToMap(dependencyList: List<Dependency>) {
+  transfromDependencyListToMap(dependencyList: List<Dependency>) {
 
     return Map(dependencyList.map(dep => {
       return [
@@ -156,7 +156,7 @@ export class NodeProcessor {
     }));
   }
 
-  private getLatestDistTag(distTags: any, publishInfo: Map<any, any>, downloadInfo: List<Version>): Version {
+  getLatestDistTag(distTags: any, publishInfo: Map<any, any>, downloadInfo: List<Version>): Version {
     if (distTags.hasOwnProperty('latest')) {
       let latestTagVersion = distTags['latest']
       return Version.builder()
@@ -171,7 +171,7 @@ export class NodeProcessor {
     }
   }
 
-  private mapTagsToVersion(distTags:any): Map<string,string>{
+  mapTagsToVersion(distTags:any): Map<string,string>{
     let accumulator:any = {};
     for(let tag in distTags){
       let version:string = distTags[tag];

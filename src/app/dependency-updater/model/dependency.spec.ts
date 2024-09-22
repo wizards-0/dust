@@ -22,6 +22,7 @@ describe('Dependency', () => {
         const randomValueClone = Dependency.fromRaw(JSON.parse(JSON.stringify(randomValue)));
         expect(randomValue.equals(randomValueClone)).toBeTrue();
         expect(randomValue.hashCode()).toBe(randomValueClone.hashCode());
+        expect(Dependency.fromRaw({})).toEqual(Dependency.empty());
     });
 
     it('should be able to compare same type objects', () => {
