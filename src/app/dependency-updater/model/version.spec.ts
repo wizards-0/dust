@@ -8,11 +8,11 @@ describe('Version', () => {
             Version.empty().with(v => {}).toBuilder().build())));
         const emptyObject2 = Version.builder()
                             .version('')
-                            .downloads(0)
+                            .downloads(-1)
                             .relativeDownloads(0)
                             .tag('')
                             .vulnerabilityCount(0)
-                            .publishDate(0)
+                            .publishDate(-1)
                             .build();
         expect(emptyObject1.equals(emptyObject2)).toBeTrue();
         const randomValue = getRandomVersion();

@@ -33,11 +33,11 @@ export class Version implements ValueObject {
     public static  empty():Version {
         return Version.builder()
             .version('')
-            .downloads(0)
+            .downloads(-1)
             .relativeDownloads(0)
             .tag('')
             .vulnerabilityCount(0)
-            .publishDate(0)
+            .publishDate(-1)
         .build();
     }
 

@@ -9,7 +9,7 @@ import { Api } from "../../app.config";
 
 export class NodeProcessor {
 
-  private packageJson: any = {};
+  packageJson: any = {};
 
   private readonly versionDownloadsComparator = (v1: Version, v2: Version) => ((v2.downloads) - (v1.downloads));
 
@@ -17,12 +17,12 @@ export class NodeProcessor {
 
 
   public processPackageJson(packageJson: string) {
-    try{
+    try {
       this.packageJson = JSON.parse(packageJson);
-    } catch(err){
+    } catch (err) {
       throw new Error('Invalid Json');
     }
-    
+
 
     const dependencies = Map(this.packageJson['dependencies']);
     const devDependencies = Map(this.packageJson['devDependencies']);
@@ -45,7 +45,9 @@ export class NodeProcessor {
       let isUpToDate;
       let lastUpdatedDate = DateTime.fromMillis(dependencyUpdatedOn.get(name, 0));
       //TODO: make 30 configurable
-      if (DateTime.now().diff(lastUpdatedDate).as('days') <= 30) {
+      let diffInDays = DateTime.now().startOf('day').diff(lastUpdatedDate.startOf('day')).as('days');
+
+      if (diffInDays <= 30) {
         updateVersion = currentVersion;
         isUpToDate = true;
       } else {
@@ -87,7 +89,7 @@ export class NodeProcessor {
   }
 
   fetchDownloadDetails(dep: Dependency) {
-    let downloadInfoUrl = Api.NodeDownload.replace('${packageName}',encodeURIComponent(dep.name))
+    let downloadInfoUrl = Api.NodeDownload.replace('${packageName}', encodeURIComponent(dep.name))
     return this.httpClient.get(downloadInfoUrl)
       .pipe(map((downloadInfo: any) => {
         let versions = Map(downloadInfo['downloads']);
@@ -102,27 +104,24 @@ export class NodeProcessor {
   }
 
   fetchVersionDetails(dep: Dependency) {
-    let packageInfoUrl = Api.NodePackage.replace('${packageName}',encodeURIComponent(dep.name))
+    let packageInfoUrl = Api.NodePackage.replace('${packageName}', encodeURIComponent(dep.name));
     return this.httpClient.get(packageInfoUrl)
       .pipe(map((packageInfo: any) => {
         let distTags = this.mapTagsToVersion(packageInfo['dist-tags']);
         let publishInfo = Map(packageInfo['time']);
-        let top10Versions = dep.versions.sort(this.versionDownloadsComparator).slice(0, 10).map(ver => ver.with(builder => {
-          builder.tag(distTags.get(ver.version, '') as string);
-          builder.publishDate(DateTime.fromISO(publishInfo.get(ver['version'], '') as string).toMillis())
-        }));
+        let top10Downloads = dep.versions.sort(this.versionDownloadsComparator).slice(0, 10);
+        let latestVersionString = packageInfo['dist-tags']['latest'];
+        let top10VersionsWithLatestTag = this.withLatestVersion(top10Downloads, latestVersionString, dep.versions)
+          .map(ver => ver.with(builder => {
+            builder.tag(distTags.get(ver.version, '') as string);
+            let publishDate = publishInfo.get(ver['version']) as string;
+            if(publishDate){
+              builder.publishDate(DateTime.fromISO(publishDate).toMillis())
+            }
+          }));
 
-        let latestDistTag = this.getLatestDistTag(packageInfo['dist-tags'], publishInfo, dep.versions);
-        let top10VersionsWithLatestTag;
-        if (!latestDistTag.version || top10Versions.find(ver => ver.version == latestDistTag.version)) {
-          top10VersionsWithLatestTag = top10Versions;
-        } else {
-          top10VersionsWithLatestTag = top10Versions.push(latestDistTag);
-        }
-
-        let top10VersionsWithLatestTagAndRelativeDownloads;
         let maxDownloads = top10VersionsWithLatestTag.maxBy(ver => ver.downloads)?.downloads;
-        top10VersionsWithLatestTagAndRelativeDownloads = top10VersionsWithLatestTag.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads))
+        let top10VersionsWithLatestTagAndRelativeDownloads = top10VersionsWithLatestTag.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads))
 
         return dep.toBuilder().versions(top10VersionsWithLatestTagAndRelativeDownloads.sort((v1, v2) => v2.publishDate - v1.publishDate)).build();
       }));
@@ -156,30 +155,30 @@ export class NodeProcessor {
     }));
   }
 
-  getLatestDistTag(distTags: any, publishInfo: Map<any, any>, downloadInfo: List<Version>): Version {
-    if (distTags.hasOwnProperty('latest')) {
-      let latestTagVersion = distTags['latest']
-      return Version.builder()
-        .version(latestTagVersion)
-        .publishDate(DateTime.fromISO(publishInfo.get(latestTagVersion, '')).toMillis())
-        .tag('latest')
-        .downloads((downloadInfo.find(v => v.version == latestTagVersion) ?? Version.empty()).downloads)
+  withLatestVersion(top10Downloads: List<Version>, latestVersionString: string, allDownloads: List<Version>): List<Version> {
+    let top10VersionsWithLatestTag;
+    if (latestVersionString && !top10Downloads.find(ver => ver.version == latestVersionString)) {
+      let latestVersion = Version.builder()
+        .version(latestVersionString)
+        .downloads((allDownloads.find(v => v.version == latestVersionString) ?? Version.empty()).downloads)
         .build();
-
+      top10VersionsWithLatestTag = top10Downloads.push(latestVersion);
     } else {
-      return Version.empty();
+      top10VersionsWithLatestTag = top10Downloads;
     }
+
+    return top10VersionsWithLatestTag;
   }
 
-  mapTagsToVersion(distTags:any): Map<string,string>{
-    let accumulator:any = {};
-    for(let tag in distTags){
-      let version:string = distTags[tag];
-      if(accumulator.hasOwnProperty(version)){
+  mapTagsToVersion(distTags: any): Map<string, string> {
+    let accumulator: any = {};
+    for (let tag in distTags) {
+      let version: string = distTags[tag];
+      if (accumulator.hasOwnProperty(version)) {
         accumulator[version] = accumulator[version] + ', ' + tag;
       } else {
         accumulator[version] = tag;
-      }      
+      }
     }
     return Map(accumulator);
   }
