@@ -5,24 +5,25 @@ import { Version } from "../model/version";
 import { catchError, delay, from, map, mergeAll, Observable, of, reduce, retry } from "rxjs";
 import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
 import { DateTime } from "luxon";
-import { Api } from "../../app.config";
+import { Injectable } from "@angular/core";
+import { ApiService } from "./api.service";
 
+@Injectable({
+    providedIn: 'root',
+})
 export class GradleProcessor {
-    private fileParts:any = {};
+    
+    gradleFile:GradleFile = new GradleFile(List([]),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1));
 
-    constructor(private httpClient: HttpClient) { }
+    constructor(private apiService: ApiService) { }
 
     processBuildGradle(buildGradle: string) {
-        let lines = buildGradle.replaceAll('\'', '"').split('\n');
+        let lines = List(buildGradle.replaceAll('\'', '"').split('\n'));
+        this.gradleFile = this.getBuildFileParts(lines);
+        let dependencyUpdatedOn = this.gradleFile.getDependencyUpdatedOn();
 
-        this.fileParts = this.getBuildFileParts(lines);
-
-        let jsonPart = (this.fileParts.dependencyUpdatedOnLines as List<string>).slice(1, -1).join('\n');
-        let dependencyUpdatedOnJson = '{' + jsonPart.substring(0, jsonPart.length - 1) + '}';
-        let dependencyUpdatedOn = JSON.parse(dependencyUpdatedOnJson);
-
-        const dependencies = this.parseDependencyLines(this.fileParts.dependencyLines, dependencyUpdatedOn);
-        const pluginDependencies = this.parsePluginLines(this.fileParts.pluginLines,dependencyUpdatedOn);
+        const dependencies = this.parseDependencyLines(this.gradleFile.getDependencyLines(), dependencyUpdatedOn);
+        const pluginDependencies = this.parsePluginLines(this.gradleFile.getPluginLines(),dependencyUpdatedOn);
 
         return {
             dependencyList$: this.fetchVersions(dependencies),
@@ -30,15 +31,12 @@ export class GradleProcessor {
         }
     }
 
-    private fetchVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
+    fetchVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
         let versionInfoResp = dependencies.map(dep => {            
             let nameParts = dep.name.split(':');
             let group = nameParts[0];
             let artifact = nameParts[1]
-            let url = Api.MavenDependency
-                .replace('${group}',encodeURIComponent(group))
-                .replace('${artifact}',encodeURIComponent(artifact));
-            return this.httpClient.get(url).pipe(map((resp: any) => {
+            return this.apiService.getMavenDependencyVersions(group,artifact).pipe(map((resp: any) => {
 
                 let versions = List(resp.components as any[]).map(component => {
                     let ossIndexInfo = component['ossIndexInfo'];
@@ -63,25 +61,15 @@ export class GradleProcessor {
         return from(versionInfoResp).pipe(mergeAll()).pipe(reduce((acc, dep) => acc.push(dep), List<Dependency>([])));
     }
 
-    private fetchPluginVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
-        const versionExtractor = (line:string) => {
-            let versionMatch = RegExp(/<version>(.*)<\/version>/).exec(line);
-            return versionMatch ? versionMatch[1] : '';
-        };
+    fetchPluginVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
         let versionInfoResp = dependencies.map(dep => {
-            let pluginMetadataUrl = Api.GradlePlugin.replace('${pluginPath}',`${dep.name.replaceAll('.', '/')}/${dep.name}.gradle.plugin`)            
-            let proxyUrl = Api.Proxy.replace('${originalUrl}',encodeURIComponent(pluginMetadataUrl));
-            return this.httpClient.get(proxyUrl, { responseType: "text" })
-            .pipe(retry({count:5,delay:1000}))
-            .pipe(map((resp: string) => {
+            return this.apiService.getGradlePluginVersions(dep.name)
+            .pipe(map((resp: any) => {
 
-                let versionMatches = resp.match(/<version>(.*?)<\/version>/g);
-                let dateMatch = RegExp(/<lastUpdated>(.*)<\/lastUpdated>/).exec(resp);
-                let lastUpdated = DateTime.fromFormat(dateMatch ? dateMatch[1] : '19700101120000', 'yyyyLLddHHmmss');
+                let lastUpdated = DateTime.fromFormat(resp.metadata.versioning.lastUpdated+'','yyyyLLddHHmmss');
 
-                let versions = List(versionMatches ? versionMatches : [])
-                    .map(versionExtractor)
-                    .filter(line => line)
+                let versions = List(resp.metadata.versioning.versions.version)
+                    .map(ver => ver+'')
                     .reverse()
                     .slice(0, 10)
                     .map(ver => Version.builder().version(ver).build());
@@ -99,80 +87,80 @@ export class GradleProcessor {
         return from(versionInfoResp).pipe(mergeAll()).pipe(reduce((acc, dep) => acc.push(dep), List<Dependency>([])));
     }
 
-    private getBuildFileParts(lines: string[]) {
-        let initialValue = {
-            currentSectionIndex: 0,
+    getBuildFileParts(lines: List<string>):GradleFile {
+        let initialValue:{currentSection:string,braceCount:number,fileParts:GradleFile} = {
+            currentSection: '',
             braceCount: 0,
-            prePluginLines: List<string>([]),
-            pluginLines: List<string>([]),
-            betweenPluginAndDependencyLines: List<string>([]),
-            dependencyLines: List<string>([]),
-            postDependencyLines: List<string>([]),
-            dependencyUpdatedOnLines: List<string>([])
+            fileParts: new GradleFile(lines,new FileIndexRange(-1,-1),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1))
         }
 
-        let fileParts = lines.reduce((acc:any, line:string) => {
+        let accumulatedResult = lines.reduce((accumulator:{currentSection:string,braceCount:number,fileParts:GradleFile}, line:string, index:number) => {
             let braceCount: number;
-            let sectionIndex: number;
-
-            if (line.trim().endsWith('{')) {
-                braceCount = acc.braceCount + 1;
-            } else if (line.trim().endsWith('}')) {
-                braceCount = acc.braceCount - 1;
-            } else {
-                braceCount = acc.braceCount;
-            }
-
-            let fileParts = List([
-                acc.prePluginLines,
-                acc.pluginLines,
-                acc.betweenPluginAndDependencyLines,
-                acc.dependencyLines,
-                acc.postDependencyLines,
-                acc.dependencyUpdatedOnLines
-            ]);
-
+            let section = accumulator.currentSection;
+            let sectionStartIndex = -1;
+            let fileParts = accumulator.fileParts;
             let updatedFileParts;
 
-            if (line.includes('plugins')
-                || line.includes('dependencies')
-                || line.includes('dependencyResolutionManagement')
-                || line.includes('dependencyUpdatedOn')
-            ) {
-                sectionIndex = acc.currentSectionIndex + 1;
-                updatedFileParts = fileParts.set(sectionIndex, fileParts.get(sectionIndex).push(line));
-            } else if ((acc.currentSectionIndex == 1 || acc.currentSectionIndex == 3) && braceCount == 0) {
-                updatedFileParts = fileParts.set(acc.currentSectionIndex, fileParts.get(acc.currentSectionIndex).push(line));
-                sectionIndex = acc.currentSectionIndex + 1;
+            if (line.includes('plugins')) {
+                section = 'plugins';
+                sectionStartIndex = index;
+            }
+
+            if (line.includes('dependencies') || line.includes('dependencyResolutionManagement')) {
+                section = 'dependencies';
+                sectionStartIndex = index;
+            }
+
+            if (line.includes('dependencyUpdatedOn')) {
+                section = 'dependencyUpdatedOn';
+                sectionStartIndex = index;
+            }
+
+            if (line.trim().endsWith('{') && section.length > 0) {
+                braceCount = accumulator.braceCount + 1;
+            } else if (line.includes('}') && section.length > 0) {
+                braceCount = accumulator.braceCount - 1;
             } else {
-                sectionIndex = acc.currentSectionIndex;
-                updatedFileParts = fileParts.set(sectionIndex, fileParts.get(sectionIndex).push(line));
+                braceCount = accumulator.braceCount;
+            }
+
+            switch(section) {
+                case 'plugins': {
+                    let startIndex = sectionStartIndex != -1 ? sectionStartIndex : fileParts.pluginLineIndices.startIndex;
+                    updatedFileParts = fileParts.withPluginLineIndices(new FileIndexRange(startIndex,index));
+                    break;
+                }
+                case 'dependencies': {
+                    let startIndex = sectionStartIndex != -1 ? sectionStartIndex : fileParts.dependencyLineIndices.startIndex;
+                    updatedFileParts = fileParts.withDependencyLineIndices(new FileIndexRange(startIndex,index));
+                    break;
+                }
+                case 'dependencyUpdatedOn': {
+                    let startIndex = sectionStartIndex != -1 ? sectionStartIndex : fileParts.dependencyUpdatedOnLineIndices.startIndex;
+                    updatedFileParts = fileParts.withDependencyUpdatedOnLineIndices(new FileIndexRange(startIndex,index));
+                    break;
+                }
+                default: {
+                    updatedFileParts = fileParts;
+                }
+            }
+            
+            if(braceCount == 0){
+                section = '';
             }
 
             return {
-                currentSectionIndex: sectionIndex,
+                currentSection: section,
                 braceCount: braceCount,
-                prePluginLines: updatedFileParts.get(0),
-                pluginLines: updatedFileParts.get(1),
-                betweenPluginAndDependencyLines: updatedFileParts.get(2),
-                dependencyLines: updatedFileParts.get(3),
-                postDependencyLines: updatedFileParts.get(4),
-                dependencyUpdatedOnLines: updatedFileParts.get(5)
+                fileParts: updatedFileParts
             };
         }, initialValue);
 
-        return {
-            prePluginLines: fileParts.prePluginLines,
-            pluginLines: fileParts.pluginLines,
-            betweenPluginAndDependencyLines: fileParts.betweenPluginAndDependencyLines,
-            dependencyLines: fileParts.dependencyLines,
-            postDependencyLines: fileParts.postDependencyLines,
-            dependencyUpdatedOnLines: fileParts.dependencyUpdatedOnLines
-        };
+        return accumulatedResult.fileParts;
     }
 
 
-    private parsePluginLines(pluginLines: string[], dependencyUpdatedOn: any) {
+    parsePluginLines(pluginLines: List<string>, dependencyUpdatedOn: any) {
         const dependencies = List(pluginLines).map(line => {
             let matches = RegExp(/.*"(.*?)".*?"(.*?)".*/).exec(line);
 
@@ -188,7 +176,7 @@ export class GradleProcessor {
         return dependencies;
     }
 
-    private parseDependencyLines(dependencyLines: string[], dependencyUpdatedOn: any) {
+    parseDependencyLines(dependencyLines: List<string>, dependencyUpdatedOn: any) {
         const dependencies = List(dependencyLines).map(line => {
             let matches = RegExp(/.*"(.*?:.*?:.*?)".*/).exec(line);
             if (matches) {
@@ -211,7 +199,8 @@ export class GradleProcessor {
             dep.name,
             dep.updateVersion ? dep.updateVersion : dep.currentVersion
         ]));
-        let updatedPluginLines = this.fileParts.pluginLines.map( (line:string) => {
+
+        let updatedPluginLines = this.gradleFile.getPluginLines().map( (line:string) => {
             let matches = RegExp(/(.*")(.*?)(".*?")(.*?)(".*)/).exec(line);
             if (matches) {
                 let updatedPluginVersion = pluginVersionMap.get(matches[2], matches[4]);
@@ -227,7 +216,7 @@ export class GradleProcessor {
             dep.updateVersion ? dep.updateVersion : dep.currentVersion
         ]));
 
-        let dependencyLines = this.fileParts.dependencyLines.map( (line:string) => {
+        let updatedDependencyLines = this.gradleFile.getDependencyLines().map( (line:string) => {
             let matches = RegExp(/(.*")(.*?:.*?:.*?)(".*)/).exec(line);
             if (matches) {
                 let dependency = matches[2];
@@ -245,17 +234,24 @@ export class GradleProcessor {
 
         let dependencyUpdatedOnLines = List<string>([])
             .push('/* dependencyUpdatedOn {')
-            .concat(dependencyList.concat(pluginDependencyList).map(dep => `"${dep.name}":${dep.updatedOn},`))
-            .push('} */')
+            .concat(dependencyList.concat(pluginDependencyList).map(dep => `"${dep.name}":${dep.updatedOn}`))
+            .push('} */');
 
-        let updatedLines = this.fileParts.prePluginLines
-            .concat(updatedPluginLines)
-            .concat(this.fileParts.betweenPluginAndDependencyLines)
-            .concat(dependencyLines)
-            .concat(this.fileParts.postDependencyLines)
-            .concat(dependencyUpdatedOnLines);
-
-        return (updatedLines as List<string>).join('\n');
+        let updatedLines = this.gradleFile.lines.map( (line:string,index:number) => {
+            let updatedLine;
+            if(index >= this.gradleFile.pluginLineIndices.startIndex && index <= this.gradleFile.pluginLineIndices.endIndex){
+                updatedLine = updatedPluginLines.get(index-this.gradleFile.pluginLineIndices.startIndex,'');
+            } else if(index >= this.gradleFile.dependencyLineIndices.startIndex && index <= this.gradleFile.dependencyLineIndices.endIndex){
+                updatedLine = updatedDependencyLines.get(index-this.gradleFile.dependencyLineIndices.startIndex,'');
+            } else if(this.gradleFile.dependencyUpdatedOnLineIndices.startIndex !=-1 && index >= this.gradleFile.dependencyUpdatedOnLineIndices.startIndex){
+                updatedLine = undefined;
+            }
+            else {
+                updatedLine = line
+            }
+            return updatedLine;
+        }).filter(line => line != undefined);
+        return updatedLines.concat(dependencyUpdatedOnLines).join('\n');
     }
 
     private createDependency(name: string, currentVersion: string, dependencyUpdatedOn: any): Dependency {
@@ -269,7 +265,9 @@ export class GradleProcessor {
         }
 
         //TODO: make 30 configurable
-        if (DateTime.now().diff(DateTime.fromMillis(updatedOn)).as('days') <= 30) {
+        let diffInDays = DateTime.now().startOf('day').diff(DateTime.fromMillis(updatedOn).startOf('day')).as('days');
+
+        if (diffInDays <= 30) {
             updateVersion = currentVersion;
             isUpToDate = true;
         } else {
@@ -283,5 +281,67 @@ export class GradleProcessor {
             .updatedOn(updatedOn)
             .isUpToDate(isUpToDate)
             .build();
+    }
+}
+
+export class GradleFile {
+    public readonly lines:List<string>;
+    public readonly pluginLineIndices:FileIndexRange;
+    public readonly dependencyLineIndices:FileIndexRange;
+    public readonly dependencyUpdatedOnLineIndices:FileIndexRange;
+    constructor(lines:List<string>,pluginLineIndices:FileIndexRange,dependencyLineIndices:FileIndexRange,dependencyUpdatedOnLineIndices:FileIndexRange){
+        this.lines = lines;
+        this.pluginLineIndices = pluginLineIndices;
+        this.dependencyLineIndices = dependencyLineIndices;
+        this.dependencyUpdatedOnLineIndices = dependencyUpdatedOnLineIndices;
+    }
+    withPluginLineIndices(pluginLineIndices:FileIndexRange):GradleFile{
+        return new GradleFile(
+            this.lines,
+            pluginLineIndices,
+            this.dependencyLineIndices,
+            this.dependencyUpdatedOnLineIndices
+        );
+    }
+    withDependencyLineIndices(dependencyLineIndices:FileIndexRange):GradleFile{
+        return new GradleFile(
+            this.lines,
+            this.pluginLineIndices,
+            dependencyLineIndices,
+            this.dependencyUpdatedOnLineIndices
+        );
+    }
+    withDependencyUpdatedOnLineIndices(dependencyUpdatedOnLineIndices:FileIndexRange):GradleFile{
+        return new GradleFile(
+            this.lines,
+            this.pluginLineIndices,
+            this.dependencyLineIndices,
+            dependencyUpdatedOnLineIndices
+        );
+    }
+    getPluginLines():List<string> {
+        return this.lines.slice(this.pluginLineIndices.startIndex,this.pluginLineIndices.endIndex+1);
+    }
+    getDependencyLines():List<string> {
+        return this.lines.slice(this.dependencyLineIndices.startIndex,this.dependencyLineIndices.endIndex+1);
+    }
+    getDependencyUpdatedOn() {         
+         if(this.dependencyUpdatedOnLineIndices.startIndex != -1){            
+            let dependencyUpdatedOnLines = this.lines.slice(this.dependencyUpdatedOnLineIndices.startIndex,this.dependencyUpdatedOnLineIndices.endIndex+1);            
+            let jsonPart = dependencyUpdatedOnLines.slice(1,-1).join(',');            
+            let dependencyUpdatedOnJson = '{' + jsonPart.substring(0, jsonPart.length) + '}';
+            return JSON.parse(dependencyUpdatedOnJson);    
+        } else {
+            return {};
+        }
+    }
+}
+
+export class FileIndexRange {
+    public readonly startIndex:number;
+    public readonly endIndex:number;
+    constructor(startIndex:number,endIndex:number){
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
     }
 }

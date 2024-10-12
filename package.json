@@ -26,6 +26,7 @@
     "@angular/router": "^18.1.0",
     "ace-common-components": "^1.0.0",
     "ace-common-util": "^1.0.20",
+    "fast-xml-parser": "^4.5.0",
     "immutable": "^4.3.7",
     "luxon": "^3.4.4",
     "rxjs": "~7.8.0",

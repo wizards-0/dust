@@ -14,7 +14,7 @@ describe('DependencyUpdaterComponent', () => {
   let mocks:MockedObjects;
   let setup = () => {
     mocks = new MockedObjects();
-    component = new DependencyUpdaterComponent(mocks.httpClient, mocks.clipboard, mocks.cdr, mocks.alertService);
+    component = new DependencyUpdaterComponent(mocks.clipboard, mocks.cdr, mocks.alertService, mocks.nodeProcessor, mocks.gradleProcessor);
   };
 
   beforeEach(setup)
@@ -129,7 +129,7 @@ describe('DependencyUpdaterComponent', () => {
 
   it('should be able to copy package json with updated dependencies to clipboard', () => {
     let testJson = '{"result":"testJson"}'
-    spyOn(component.nodeProcessor,'getUpdatedPackageJson').and.returnValue(testJson);
+    spyOn(mocks.nodeProcessor,'getUpdatedPackageJson').and.returnValue(testJson);
     spyOn(mocks.clipboard,'copy');
     spyOn(mocks.alertService,'show');
     let depsList = List([
@@ -140,14 +140,14 @@ describe('DependencyUpdaterComponent', () => {
     component.devDependenciesDataSource.next(depsList);
 
     component.copyPackageJson();
-    expect(component.nodeProcessor.getUpdatedPackageJson).toHaveBeenCalledWith(depsList,depsList);
+    expect(mocks.nodeProcessor.getUpdatedPackageJson).toHaveBeenCalledWith(depsList,depsList);
     expect(mocks.clipboard.copy).toHaveBeenCalledWith(testJson);
     expect(mocks.alertService.show).toHaveBeenCalledOnceWith(jasmine.any(String),AlertCategory.success,2000);
   });
 
   it('should be able to copy gradle build file with updated dependencies to clipboard', () => {
     let testFile = 'testFile{}'
-    spyOn(component.gradleProcessor,'getUpdatedGradleFile').and.returnValue(testFile);
+    spyOn(mocks.gradleProcessor,'getUpdatedGradleFile').and.returnValue(testFile);
     spyOn(mocks.clipboard,'copy');
     spyOn(mocks.alertService,'show');
     let depsList = List([
@@ -158,19 +158,19 @@ describe('DependencyUpdaterComponent', () => {
     component.pluginDependenciesDataSource.next(depsList);
 
     component.copyGradleFile();
-    expect(component.gradleProcessor.getUpdatedGradleFile).toHaveBeenCalledWith(depsList,depsList);
+    expect(mocks.gradleProcessor.getUpdatedGradleFile).toHaveBeenCalledWith(depsList,depsList);
     expect(mocks.clipboard.copy).toHaveBeenCalledWith(testFile);
     expect(mocks.alertService.show).toHaveBeenCalledOnceWith(jasmine.any(String),AlertCategory.success,2000);
   });
   
   it('should produce error for invalid json and empty dep list', ()=> {
-    spyOn(component.nodeProcessor,'processPackageJson').and.throwError(new Error('Invalid Json'));
+    spyOn(mocks.nodeProcessor,'processPackageJson').and.throwError(new Error('Invalid Json'));
     component.processPackageJson();
     expect(component.parseSucceeded).toBeFalse();
     expect(component.packageJsonParsed).toBeTrue();
 
     setup();
-    spyOn(component.nodeProcessor,'processPackageJson').and.returnValue({
+    spyOn(mocks.nodeProcessor,'processPackageJson').and.returnValue({
       dependencyList$: of(List([])),
       devDependencyList$: of(List([]))
     });
@@ -184,7 +184,7 @@ describe('DependencyUpdaterComponent', () => {
       Dependency.builder().name('d1').currentVersion('1').build(),
       Dependency.builder().name('d2').currentVersion('2').build()
     ]);
-    spyOn(component.nodeProcessor,'processPackageJson').and.returnValue({
+    spyOn(mocks.nodeProcessor,'processPackageJson').and.returnValue({
       dependencyList$: of(depsList),
       devDependencyList$: of(depsList)
     });
@@ -196,7 +196,7 @@ describe('DependencyUpdaterComponent', () => {
   });
 
   it('should produce error gradle file with empty dep list', ()=> {    
-    spyOn(component.gradleProcessor,'processBuildGradle').and.returnValue({
+    spyOn(mocks.gradleProcessor,'processBuildGradle').and.returnValue({
       dependencyList$: of(List([])),
       pluginDependencyList$: of(List([]))
     });
@@ -210,7 +210,7 @@ describe('DependencyUpdaterComponent', () => {
       Dependency.builder().name('d1').currentVersion('1').build(),
       Dependency.builder().name('d2').currentVersion('2').build()
     ]);
-    spyOn(component.gradleProcessor,'processBuildGradle').and.returnValue({
+    spyOn(mocks.gradleProcessor,'processBuildGradle').and.returnValue({
       dependencyList$: of(depsList),
       pluginDependencyList$: of(depsList)
     });

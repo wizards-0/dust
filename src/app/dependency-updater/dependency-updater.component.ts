@@ -42,11 +42,13 @@ export class DependencyUpdaterComponent {
   devDependenciesDataSource = new BehaviorSubject<List<Dependency>>(List([]));
   pluginDependenciesDataSource = new BehaviorSubject<List<Dependency>>(List([]));
 
-  nodeProcessor: NodeProcessor;
-  gradleProcessor: GradleProcessor;
-  constructor(httpClient: HttpClient, private clipboard: Clipboard, private cdr: ChangeDetectorRef,private alertService:AlertService) {
-    this.nodeProcessor = new NodeProcessor(httpClient);
-    this.gradleProcessor = new GradleProcessor(httpClient);
+  constructor(    
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef,
+    private alertService:AlertService,
+    private nodeProcessor:NodeProcessor,
+    private gradleProcessor: GradleProcessor
+  ) {
   }
 
   processPackageJson(): void {

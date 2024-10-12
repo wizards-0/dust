@@ -5,15 +5,19 @@ import { from, map, mergeAll, Observable, of, reduce } from "rxjs";
 import { Dependency } from "../model/dependency";
 import { Version } from "../model/version";
 import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
-import { Api } from "../../app.config";
+import { Injectable } from "@angular/core";
+import { ApiService } from "./api.service";
 
+@Injectable({
+  providedIn: 'root',
+})
 export class NodeProcessor {
 
   packageJson: any = {};
 
   private readonly versionDownloadsComparator = (v1: Version, v2: Version) => ((v2.downloads) - (v1.downloads));
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(private apiService: ApiService) { }
 
 
   public processPackageJson(packageJson: string) {
@@ -88,9 +92,8 @@ export class NodeProcessor {
     return accumulatedVersionInfoResp;
   }
 
-  fetchDownloadDetails(dep: Dependency) {
-    let downloadInfoUrl = Api.NodeDownload.replace('${packageName}', encodeURIComponent(dep.name))
-    return this.httpClient.get(downloadInfoUrl)
+  fetchDownloadDetails(dep: Dependency) {    
+    return this.apiService.getNodePackageDownloadInfo(dep.name)
       .pipe(map((downloadInfo: any) => {
         let versions = Map(downloadInfo['downloads']);
         let versionDownloads = versions.entrySeq().map(entry =>
@@ -103,9 +106,8 @@ export class NodeProcessor {
       }));
   }
 
-  fetchVersionDetails(dep: Dependency) {
-    let packageInfoUrl = Api.NodePackage.replace('${packageName}', encodeURIComponent(dep.name));
-    return this.httpClient.get(packageInfoUrl)
+  fetchVersionDetails(dep: Dependency) {    
+    return this.apiService.getNodePackageInfo(dep.name)
       .pipe(map((packageInfo: any) => {
         let distTags = this.mapTagsToVersion(packageInfo['dist-tags']);
         let publishInfo = Map(packageInfo['time']);

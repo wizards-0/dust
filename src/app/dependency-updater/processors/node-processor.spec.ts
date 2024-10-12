@@ -9,7 +9,7 @@ import { equals } from 'ace-common-util';
 import { customMatchers, jsonMatching } from '../../../test/jasmine-matchers';
 import { Dependency } from '../model/dependency';
 import { BehaviorSubject, of, skip, Subject, take } from 'rxjs';
-import { Api } from '../../app.config';
+import { ApiUrl } from './api.service';
 import { MockResponse } from '../../../test/mocks/http-client-mock';
 
 describe('NodeProcessor', () => {
@@ -25,7 +25,7 @@ describe('NodeProcessor', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    nodeProcessor = new NodeProcessor(mocks.httpClient);
+    nodeProcessor = new NodeProcessor(mocks.apiService);
     jasmine.addMatchers({
       toBeJsm: (util) => {
         return {
@@ -221,8 +221,8 @@ describe('NodeProcessor', () => {
         "5.4.2": "2014-03-21"
       }
     };
-    let getDownloadInfoUrl = (depName:string) => Api.NodeDownload.replace('${packageName}', encodeURIComponent(depName));
-    let getPackageInfoUrl = (depName:string) => Api.NodePackage.replace('${packageName}', encodeURIComponent(depName));
+    let getDownloadInfoUrl = (depName:string) => ApiUrl.NodeDownload.replace('${packageName}', encodeURIComponent(depName));
+    let getPackageInfoUrl = (depName:string) => ApiUrl.NodePackage.replace('${packageName}', encodeURIComponent(depName));
     (mocks.httpClient as any).setMockResponses(List([
       new MockResponse(getDownloadInfoUrl('immutable'),'',downloadInfo),
       new MockResponse(getDownloadInfoUrl('rxjs'),'',downloadInfo),
@@ -285,8 +285,8 @@ describe('NodeProcessor', () => {
       "time": {
       }
     };
-    let getDownloadInfoUrl = (depName:string) => Api.NodeDownload.replace('${packageName}', encodeURIComponent(depName));
-    let getPackageInfoUrl = (depName:string) => Api.NodePackage.replace('${packageName}', encodeURIComponent(depName));
+    let getDownloadInfoUrl = (depName:string) => ApiUrl.NodeDownload.replace('${packageName}', encodeURIComponent(depName));
+    let getPackageInfoUrl = (depName:string) => ApiUrl.NodePackage.replace('${packageName}', encodeURIComponent(depName));
     (mocks.httpClient as any).setMockResponses(List([
       new MockResponse(getDownloadInfoUrl('immutable'),'',downloadInfo),
       new MockResponse(getPackageInfoUrl('immutable'),'',packageInfo),
