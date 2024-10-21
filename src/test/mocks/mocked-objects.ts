@@ -8,9 +8,11 @@ import { ClipboardMock } from './clipboard-mock';
 import { HttpClientMock } from './http-client-mock';
 import { NodeProcessor } from '../../app/dependency-updater/processors/node-processor';
 import { GradleProcessor } from '../../app/dependency-updater/processors/gradle-processor';
-import { ApiService } from '../../app/dependency-updater/processors/api.service';
+import { ApiService } from '../../app/api-service/api.service';
+import { SettingsService } from '../../app/settings/settings.service';
 
 export class MockedObjects {
+
     public snackBar:MatSnackBar;
     public clipboard:Clipboard;
     public httpClient:HttpClient;
@@ -18,7 +20,8 @@ export class MockedObjects {
     public alertService:AlertService;
     public apiService:ApiService;
     public nodeProcessor:NodeProcessor;
-    public gradleProcessor:GradleProcessor;    
+    public gradleProcessor:GradleProcessor;
+    public settingsService:SettingsService;
 
     constructor(){
         this.cdr = {
@@ -32,8 +35,10 @@ export class MockedObjects {
         this.alertService = new AlertService(this.snackBar);
         this.clipboard = new ClipboardMock() as any;
         this.httpClient = new HttpClientMock() as any;
-        this.apiService = new ApiService(this.httpClient);
-        this.nodeProcessor = new NodeProcessor(this.apiService);
-        this.gradleProcessor = new GradleProcessor(this.apiService);
+        this.settingsService = new SettingsService();
+        this.apiService = new ApiService(this.httpClient,this.settingsService);
+        this.nodeProcessor = new NodeProcessor(this.apiService,this.settingsService);
+        this.gradleProcessor = new GradleProcessor(this.apiService, this.settingsService);
     }
+
 }

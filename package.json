@@ -6,10 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "test": "concurrently \"node cors_proxy/server.js\" \"ng test\"",
     "tailwind": "tailwind -o public/tailwind-build.css --watch",
-    "dev": "concurrently \"npm start\" \"npm run tailwind\"",
-    "coverage": "ng test --no-watch --code-coverage"
+    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"node cors_proxy/server.js\"",
+    "coverage": "concurrently \"node cors_proxy/server.js\" \"ng test --no-watch --code-coverage\""
   },
   "private": true,
   "dependencies": {
@@ -26,6 +26,7 @@
     "@angular/router": "^18.1.0",
     "ace-common-components": "^1.0.0",
     "ace-common-util": "^1.0.20",
+    "express": "^4.21.1",
     "fast-xml-parser": "^4.5.0",
     "immutable": "^4.3.7",
     "luxon": "^3.4.4",
@@ -37,6 +38,7 @@
     "@angular-devkit/build-angular": "^18.1.2",
     "@angular/cli": "^18.1.2",
     "@angular/compiler-cli": "^18.1.0",
+    "@types/express": "^5.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.0.0",

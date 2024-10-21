@@ -15,6 +15,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTableModule} from '@angular/material/table';
 import {MatRadioModule} from '@angular/material/radio';
 import { AsyncPipe } from '@angular/common';
+import { SettingsService } from '../../settings/settings.service';
 
 
 @Component({
@@ -37,6 +38,10 @@ export class DependencyUpdateSelectorComponent {
   //@Output, will hold the same reference of behavior subject as parent on init. Any emits on this datasource will be received by parent
   _dataSource:BehaviorSubject<List<Dependency>> = new BehaviorSubject(List());
   depsArr$:Observable<Dependency[]> = of([]);
+  updateCycle:string;
+  constructor(settingsService:SettingsService){
+    this.updateCycle = settingsService.getSettings().updateCycle+'';
+  }
 
   @Input()
   set buildType(buildType:string){
@@ -86,9 +91,9 @@ export class DependencyUpdateSelectorComponent {
   }
 
   matchVersion(element:Dependency,versionElement:Version):boolean {
-    return element.updateVersion 
-    ? element.updateVersion.includes(versionElement.version) 
-    : element.currentVersion.includes(versionElement.version);
+    let versionToMatch = element.updateVersion ? element.updateVersion : element.currentVersion;
+    let prefix = this.getVersionPrefix(versionToMatch);
+    return versionToMatch == (prefix+versionElement.version);
   }
 
   selectDependency(element:Dependency,$event:any):void {

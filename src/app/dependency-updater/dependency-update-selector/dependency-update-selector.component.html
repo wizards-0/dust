@@ -20,7 +20,7 @@
             </ng-container>
 
             <ng-container matColumnDef="isUpToDate">
-                <th mat-header-cell *matHeaderCellDef class="align-center"> Updated (30 days) </th>
+                <th mat-header-cell *matHeaderCellDef class="align-center"> Updated ({{updateCycle}} days) </th>
                 <td mat-cell *matCellDef="let element" class="align-center">
                     @if(element.isUpToDate == true){
                     <mat-icon style="color:#4bbf7a">check_circle</mat-icon>

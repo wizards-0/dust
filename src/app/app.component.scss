@@ -1,7 +1,10 @@
 #appContainer{
     background-color: #1b6b9a;
-background-image: linear-gradient(160deg, #1b6b9a 0%, #80D0C7 100%);
+    background-image: linear-gradient(160deg, #1b6b9a 0%, #80D0C7 100%);
+}
 
-
-
+button.active {
+    border: solid 1px var(--primary);
+    color:var(--primary);
+    border-radius:4px;
 }

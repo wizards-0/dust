@@ -23,6 +23,7 @@ import { DependencyUpdateSelectorComponent } from './dependency-update-selector/
 @Component({
   selector: 'dependency-updater',
   templateUrl: './dependency-updater.component.html',
+  host: {class: 'flex basis-full w-full h-full'},
   standalone: true,
   imports: [MatCard, MatInputModule, ButtonComponent, MatButtonModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
   providers: [AlertService],

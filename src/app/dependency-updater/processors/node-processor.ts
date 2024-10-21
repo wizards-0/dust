@@ -6,7 +6,8 @@ import { Dependency } from "../model/dependency";
 import { Version } from "../model/version";
 import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
 import { Injectable } from "@angular/core";
-import { ApiService } from "./api.service";
+import { ApiService } from "../../api-service/api.service";
+import { SettingsService } from "../../settings/settings.service";
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,7 @@ export class NodeProcessor {
 
   private readonly versionDownloadsComparator = (v1: Version, v2: Version) => ((v2.downloads) - (v1.downloads));
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private settingsService:SettingsService) { }
 
 
   public processPackageJson(packageJson: string) {
@@ -51,7 +52,7 @@ export class NodeProcessor {
       //TODO: make 30 configurable
       let diffInDays = DateTime.now().startOf('day').diff(lastUpdatedDate.startOf('day')).as('days');
 
-      if (diffInDays <= 30) {
+      if (diffInDays <= this.settingsService.getSettings().updateCycle) {
         updateVersion = currentVersion;
         isUpToDate = true;
       } else {

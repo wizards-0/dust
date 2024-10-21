@@ -9,7 +9,7 @@ import { equals } from 'ace-common-util';
 import { customMatchers, jsonMatching } from '../../../test/jasmine-matchers';
 import { Dependency } from '../model/dependency';
 import { BehaviorSubject, of, skip, Subject, take } from 'rxjs';
-import { ApiUrl } from './api.service';
+import { ApiUrl } from '../../api-service/api.service';
 import { MockResponse } from '../../../test/mocks/http-client-mock';
 
 describe('NodeProcessor', () => {
@@ -25,16 +25,7 @@ describe('NodeProcessor', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    nodeProcessor = new NodeProcessor(mocks.apiService);
-    jasmine.addMatchers({
-      toBeJsm: (util) => {
-        return {
-          compare: (actual: any, expected: any) => {
-            return { pass: true, message: '' }
-          }
-        }
-      }
-    });
+    nodeProcessor = new NodeProcessor(mocks.apiService,mocks.settingsService);
   });
 
   it('should be able to map tags to version', () => {

@@ -1,3 +1,8 @@
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem
+}
+
 .mb-5 {
   margin-bottom: 1.25rem
 }
@@ -32,6 +37,11 @@
 
 .h-full {
   height: 100%
+}
+
+.h-min {
+  height: -moz-min-content;
+  height: min-content
 }
 
 .h-screen {
@@ -94,8 +104,16 @@
   border-style: solid
 }
 
+.border-none {
+  border-style: none
+}
+
 .bg-primary {
   background-color: var(--primary)
+}
+
+.bg-surface {
+  background-color: var(--surface)
 }
 
 .bg-surface-container {

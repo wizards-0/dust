@@ -6,7 +6,8 @@ import { catchError, delay, from, map, mergeAll, Observable, of, reduce, retry }
 import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
 import { DateTime } from "luxon";
 import { Injectable } from "@angular/core";
-import { ApiService } from "./api.service";
+import { ApiService } from "../../api-service/api.service";
+import { SettingsService } from "../../settings/settings.service";
 
 @Injectable({
     providedIn: 'root',
@@ -15,7 +16,7 @@ export class GradleProcessor {
     
     gradleFile:GradleFile = new GradleFile(List([]),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1));
 
-    constructor(private apiService: ApiService) { }
+    constructor(private apiService: ApiService, private settingsService:SettingsService) { }
 
     processBuildGradle(buildGradle: string) {
         let lines = List(buildGradle.replaceAll('\'', '"').split('\n'));
@@ -58,7 +59,10 @@ export class GradleProcessor {
             }));
         });
 
-        return from(versionInfoResp).pipe(mergeAll()).pipe(reduce((acc, dep) => acc.push(dep), List<Dependency>([])));
+        return from(versionInfoResp)
+            .pipe(mergeAll())
+            .pipe(reduce((acc, dep) => acc.push(dep), List<Dependency>([])))
+            .pipe(map(deps => deps.sortBy(dep => dep.name)));
     }
 
     fetchPluginVersions(dependencies: List<Dependency>): Observable<List<Dependency>> {
@@ -81,10 +85,13 @@ export class GradleProcessor {
                 return dep.toBuilder()
                     .versions(versionsWithLastUpdated)
                     .build();
-            }),catchError(err=>of(dep)));
+            }),catchError(()=>of(dep)));
         });
 
-        return from(versionInfoResp).pipe(mergeAll()).pipe(reduce((acc, dep) => acc.push(dep), List<Dependency>([])));
+        return from(versionInfoResp)
+            .pipe(mergeAll())
+            .pipe(reduce((acc, dep) => acc.push(dep), List<Dependency>([])))
+            .pipe(map(deps => deps.sortBy(dep => dep.name)));;
     }
 
     getBuildFileParts(lines: List<string>):GradleFile {
@@ -267,7 +274,7 @@ export class GradleProcessor {
         //TODO: make 30 configurable
         let diffInDays = DateTime.now().startOf('day').diff(DateTime.fromMillis(updatedOn).startOf('day')).as('days');
 
-        if (diffInDays <= 30) {
+        if (diffInDays <= this.settingsService.getSettings().updateCycle) {
             updateVersion = currentVersion;
             isUpToDate = true;
         } else {

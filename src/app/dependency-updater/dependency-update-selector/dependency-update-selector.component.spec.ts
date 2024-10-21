@@ -16,7 +16,7 @@ describe('DependencyUpdateSelectorComponent', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    component = new DependencyUpdateSelectorComponent();
+    component = new DependencyUpdateSelectorComponent(mocks.settingsService);
   });
 
   it('should assign columns based on build type', () => {

@@ -1,0 +1,40 @@
+<div id="buildFileSection" class="flex flex-row w-full justify-center pt-8">
+    <div id="settingsContent" class="flex flex-col h-min mat-elevation-z4 rounded-lg overflow-hidden">
+
+        <div id="settingsHeader" class="flex flex-row bg-primary text-on-primary justify-center text-lg p-2">Settings
+        </div>
+        <div id="themeSection" class="flex flex-row items-center bottom-divider p-4">
+            <mat-label class="flex w-96 text-base text-on-surface items-center">Color Scheme</mat-label>
+            <mat-radio-group class="flex" aria-label="Theme" [formControl]="themeInput">
+                <mat-radio-button value="light">Light</mat-radio-button>
+                <mat-radio-button value="dark">Dark</mat-radio-button>
+            </mat-radio-group>
+        </div>
+        <div id="updateCycleSection" class="flex flex-row items-center px-4 pt-4 bottom-divider">
+            <mat-label class="flex w-96 text-base text-on-surface items-center pb-5"><span>Update Cycle</span> <button
+                    mat-icon-button #updateCycleTooltip="matTooltip" (click)="updateCycleTooltip.toggle()" color="primary"
+                    matTooltip="Update cycle is period of days for which dependencies are considered up to date. So if the build file is analysed again, update cycle will be used to determine which dependencies were updated during this period, and hence marked up to date. Check docs for more details">
+                    <mat-icon class="text-primary">info</mat-icon>
+                </button>
+            </mat-label>
+            <mat-form-field class="flex" id="updateCycleInputField" appearance="outline">
+                <mat-label>Days</mat-label>
+                <input matInput type="number" [formControl]="updateCycleInput" class="flex overflow-hidden" />
+            </mat-form-field>
+        </div>
+        <div id="proxySection" class="flex flex-row items-center px-4 pt-4">
+            <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">
+                <span>Cors Proxy</span>
+                <button mat-icon-button #proxyTooltip="matTooltip" (click)="proxyTooltip.toggle()" color="primary"
+                    matTooltip="API for fetching gradle plugin versions, doesnt allow CORS. Hence a CORS proxy is needed to fetch data. This field expects CORS proxy URL to which the original URL can be appended. Check docs for more details">
+                    <mat-icon class="text-primary">info</mat-icon>
+                </button>
+            </mat-label>
+
+            <mat-form-field class="flex" id="proxyUrlInputField" appearance="outline">
+                <mat-label>Url</mat-label>
+                <input matInput [formControl]="proxyUrlInput" class="flex overflow-hidden" />
+            </mat-form-field>
+        </div>
+    </div>
+</div>

@@ -1,8 +1,25 @@
 <div id="appContainer" class="flex flex-col basis-full h-full px-4 pb-4 box-border">
-  <h2 class="text-white">
-    D . U . S . T .
-  </h2>
+  <div class="flex w-full">
+    <div class="flex grow ">
+      <h2 class="text-white">
+        D . U . S . T .
+      </h2>
+    </div>
+    <div class="flex items-center my-4 bg-surface rounded-lg">
+      <button mat-icon-button aria-label="home" routerLink="/home" routerLinkActive="active">
+        <mat-icon>home</mat-icon>
+      </button>
+      <button mat-icon-button aria-label="settings" routerLink="/settings" routerLinkActive="active">
+        <mat-icon>settings</mat-icon>
+      </button>
+      <button mat-icon-button aria-label="docs" routerLink="/kb" routerLinkActive="active">
+        <mat-icon>library_books</mat-icon>
+      </button>
+    </div>
+  </div>
   <mat-card class="flex flex-row grow overflow-hidden">
-    <dependency-updater class="flex basis-full h-full overflow-auto"></dependency-updater>
+    <div class="flex basis-full w-full h-full overflow-auto">
+      <router-outlet></router-outlet>
+    </div>
   </mat-card>
 </div>
