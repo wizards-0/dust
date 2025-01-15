@@ -15,10 +15,8 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 export class AppComponent {
   title = 'dust';
 
-  docsUrl: string;
-  
-  constructor(settingsService:SettingsService){
-    this.docsUrl = document.baseURI+'docs/index.html?theme='+settingsService.getSettings().theme;
+  constructor(private readonly settingsService:SettingsService){
+
     if(settingsService.getSettings().theme == 'dark'){
       document.body.classList.add('dark-theme');
     }
@@ -28,5 +26,9 @@ export class AppComponent {
     } else {
       console.warn('Cors Proxy not set, will not be able to fetch gradle plugin versions');
     }
+  }
+
+  getDocsUrl() {
+    return document.baseURI+'docs/index.html?theme='+this.settingsService.getSettings().theme;
   }
 }

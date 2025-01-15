@@ -35,4 +35,13 @@ describe('AppComponent', () => {
     
     expect(document.body.classList.add).toHaveBeenCalledOnceWith('dark-theme');
   });
+
+  it('should apply theme to docs url', () => {
+    spyOn(localStorage,'getItem')
+      .and.returnValue(JSON.stringify(new Settings('dark','https://www.some.bs')));
+
+    let appComp = new AppComponent(new SettingsService());
+
+    expect(appComp.getDocsUrl()).toBe(document.baseURI+'docs/index.html?theme=dark');
+  })
 });
