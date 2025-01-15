@@ -20,4 +20,4 @@
 ## PR Guidelines
 - After changes, code should still have 100% coverage in all categories (line, branch, functions, statements)
 - If changes are made to doc tests, relevant docs also need to be updated & re-generated
-- New build should be checked in to release folder for github page
+- PR for new build should also be created in build branch
