@@ -27,10 +27,9 @@
     }
     
     window.document.head.append(link);
-    var appHome = window.location.protocol+'//'+window.location.host+'/home';
      // Docsify Configuration
      window.$docsify = {      
-      name: '<a class ="app-name-link" style="font-size:1.5rem;font-weight:400;" href="'+appHome+'">D.U.S.T.</a>',
+      name: '<a class ="app-name-link" style="font-size:1.5rem;font-weight:400;" href="'+document.baseURI.split('/docs')[0]+'">D.U.S.T.</a>',
       loadSidebar: true,
       alias: {
       '/.*/_sidebar.md': '/_sidebar.md'

@@ -18,7 +18,7 @@ export class AppComponent {
   docsUrl: string;
   
   constructor(settingsService:SettingsService){
-    this.docsUrl = '/docs/index.html?theme='+settingsService.getSettings().theme;
+    this.docsUrl = document.baseURI+'docs/index.html?theme='+settingsService.getSettings().theme;
     if(settingsService.getSettings().theme == 'dark'){
       document.body.classList.add('dark-theme');
     }

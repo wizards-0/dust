@@ -25,7 +25,7 @@
     "@angular/platform-browser-dynamic": "^19.0.6",
     "@angular/router": "^19.0.6",
     "ace-common-components": "^19.0.1",
-    "ace-common-util": "^1.0.32",
+    "ace-common-util": "^1.0.33",
     "fast-xml-parser": "^4.5.1",
     "immutable": "^4.3.7",
     "luxon": "^3.5.0",
