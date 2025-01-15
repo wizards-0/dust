@@ -10,6 +10,7 @@ import { NodeProcessor } from '../../app/dependency-updater/processors/node-proc
 import { GradleProcessor } from '../../app/dependency-updater/processors/gradle-processor';
 import { ApiService } from '../../app/api-service/api.service';
 import { SettingsService } from '../../app/settings/settings.service';
+import { DomSanitizerMock } from './dom-sanitizier-mock';
 
 export class MockedObjects {
 
@@ -22,6 +23,7 @@ export class MockedObjects {
     public nodeProcessor:NodeProcessor;
     public gradleProcessor:GradleProcessor;
     public settingsService:SettingsService;
+    public domSanitizer:DomSanitizerMock;
 
     constructor(){
         this.cdr = {
@@ -37,8 +39,9 @@ export class MockedObjects {
         this.httpClient = new HttpClientMock() as any;
         this.settingsService = new SettingsService();
         this.apiService = new ApiService(this.httpClient,this.settingsService);
-        this.nodeProcessor = new NodeProcessor(this.apiService,this.settingsService);
-        this.gradleProcessor = new GradleProcessor(this.apiService, this.settingsService);
+        this.nodeProcessor = new NodeProcessor(this.apiService);
+        this.gradleProcessor = new GradleProcessor(this.apiService);
+        this.domSanitizer = new DomSanitizerMock();
     }
 
 }

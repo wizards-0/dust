@@ -16,7 +16,7 @@ describe('DependencyUpdateSelectorComponent', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    component = new DependencyUpdateSelectorComponent(mocks.settingsService);
+    component = new DependencyUpdateSelectorComponent();
   });
 
   it('should assign columns based on build type', () => {
@@ -56,7 +56,6 @@ describe('DependencyUpdateSelectorComponent', () => {
     let dep = component._dataSource.value.get(0,Dependency.empty());
     expect(dep.updateVersion).toBe('v2');
     expect(dep.isUpToDate).toBeTrue();
-    expect(DateTime.now().toMillis() - dep.updatedOn).toBeLessThan(1000);
 
     expect(component._dataSource.value.get(1)?.updateVersion).toBeFalsy();
   });

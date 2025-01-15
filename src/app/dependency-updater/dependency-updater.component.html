@@ -19,21 +19,7 @@
                 </mat-form-field>
                 <ace-button class="mb-5 ml-2" color="primary" (click)="processBuildGradle()">Check</ace-button>
             </div>
-
-            @if((packageJsonParsed || gradleFileParsed) && parseSucceeded) {
-            <div id="packageUpdateSection" class="flex flex-row items-center top-divider p-4">
-                <mat-label class="flex flex-grow items-center">
-                    <span class="text-base text-on-surface">Mark all as updated</span>
-                    <div class="text-primary">
-                        <button mat-icon-button #tooltip="matTooltip" (click)="tooltip.toggle()" color="primary"
-                            matTooltip="NOT Recommended. You should select all versions manually at least first time, to ensure not anything is skipped. It will record the date when the action was performed, and it will automatically mark the inspected dependencies as updated for future inspections. The period for auto marking is 30 days. So in subsequent runs, you only need to inspect dependencies which were not inspected in last 30 days.">
-                            <mat-icon class="text-primary">info</mat-icon>
-                        </button>
-                    </div>
-                </mat-label>
-                <ace-button class="flex" color="warn" (click)="markAll()">Mark</ace-button>
-            </div>
-            }
+           
             @if(packageJsonParsed && parseSucceeded) {
             <div id="packageJsonDownloadSection" class="flex flex-row items-center top-divider p-4">
                 <mat-label class="flex flex-grow text-base text-on-surface items-center">Copy updated package json to clipboard</mat-label>

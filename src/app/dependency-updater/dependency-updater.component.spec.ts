@@ -76,57 +76,6 @@ describe('DependencyUpdaterComponent', () => {
     expect(getVersionWithRelativeDownloads(ver,undefined).relativeDownloads).toBe(0);
   });
 
-  it('should copy current version of all dependencies to update version, when mark all is selected', () => {
-    let depsList = List([
-      Dependency.builder().name('d1').currentVersion('1').build(),
-      Dependency.builder().name('d2').currentVersion('2').build()
-    ]);
-
-    component.dependenciesDataSource.next(depsList);
-    component.devDependenciesDataSource.next(depsList);
-    component.pluginDependenciesDataSource.next(depsList);
-
-    component.markAll();
-
-    component.dependenciesDataSource.value.forEach(dep => {
-      expect(dep.updateVersion).toEqual(dep.currentVersion);
-      expect(dep.isUpToDate).toBeTrue();
-      expect(DateTime.now().toMillis() - dep.updatedOn).toBeLessThan(1000);
-    });
-
-    component.devDependenciesDataSource.value.forEach(dep => {
-      expect(dep.updateVersion).toEqual(dep.currentVersion);
-      expect(dep.isUpToDate).toBeTrue();
-      expect(DateTime.now().toMillis() - dep.updatedOn).toBeLessThan(1000);
-    });
-
-    component.pluginDependenciesDataSource.value.forEach(dep => {
-      expect(dep.updateVersion).toEqual(dep.currentVersion);
-      expect(dep.isUpToDate).toBeTrue();
-      expect(DateTime.now().toMillis() - dep.updatedOn).toBeLessThan(1000);
-    });
-  });
-
-  it('should not copy current version if update version already present, when mark all is selected', () => {
-    let depsList = List([
-      Dependency.builder().name('d1').currentVersion('1').updateVersion('1.1').build(),
-      Dependency.builder().name('d2').currentVersion('2').build()
-    ]);
-
-    component.dependenciesDataSource.next(depsList);
-    component.devDependenciesDataSource.next(depsList);
-    component.pluginDependenciesDataSource.next(depsList);
-
-    component.markAll();
-
-    expect(component.dependenciesDataSource.value.get(0)?.updateVersion).toBe('1.1');
-    expect(component.dependenciesDataSource.value.get(1)?.updateVersion).toBe('2');
-    expect(component.devDependenciesDataSource.value.get(0)?.updateVersion).toBe('1.1');
-    expect(component.devDependenciesDataSource.value.get(1)?.updateVersion).toBe('2');
-    expect(component.pluginDependenciesDataSource.value.get(0)?.updateVersion).toBe('1.1');
-    expect(component.pluginDependenciesDataSource.value.get(1)?.updateVersion).toBe('2');
-  });
-
   it('should be able to copy package json with updated dependencies to clipboard', () => {
     let testJson = '{"result":"testJson"}'
     spyOn(mocks.nodeProcessor,'getUpdatedPackageJson').and.returnValue(testJson);

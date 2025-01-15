@@ -1,18 +1,13 @@
 import { TestBed } from '@angular/core/testing'
-import { MockedObjects } from '../../test/mocks/mocked-objects';
 import { provideHttpClient } from '@angular/common/http';
 import { ApiService, ApiUrl } from './api.service';
 import { DateTime } from 'luxon';
 import { Settings } from '../settings/settings';
 import { catchError, reduce } from 'rxjs';
-import express, { Request, Response } from 'express';
-import http from 'node:http';
 
 describe('API Service', () => {
 
-  let mocks: MockedObjects;
   let apiService: ApiService;
-  let cp;
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 29000;
     
@@ -20,7 +15,6 @@ describe('API Service', () => {
   });
 
   beforeEach(() => {
-    mocks = new MockedObjects();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     apiService = TestBed.inject(ApiService);
   });
@@ -76,7 +70,7 @@ describe('API Service', () => {
   });
 
   it('should be able to call api for gradle plugin versions', (done) => {
-    spyOn(apiService.settingsService, 'getSettings').and.returnValue(new Settings('light', 30, ApiUrl.Proxy));
+    spyOn(apiService.settingsService, 'getSettings').and.returnValue(new Settings('light', ApiUrl.Proxy));
     apiService.getGradlePluginVersions('info.solidsoft.pitest').subscribe((resp: any) => {
       let verArr: any[] = resp.metadata.versioning.versions.version;
       expect(typeof verArr).toBe('object');

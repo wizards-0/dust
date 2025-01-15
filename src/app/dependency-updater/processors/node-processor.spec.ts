@@ -25,7 +25,7 @@ describe('NodeProcessor', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    nodeProcessor = new NodeProcessor(mocks.apiService,mocks.settingsService);
+    nodeProcessor = new NodeProcessor(mocks.apiService);
   });
 
   it('should be able to map tags to version', () => {
@@ -159,18 +159,14 @@ describe('NodeProcessor', () => {
       "typescript": "4.0.2",
       "zone.js": "7.8.5"
     });
-    let depUpdatedOn = Map({
-      "immmutable": DateTime.now().startOf('day').minus({ days: 29 }).toMillis(),
-      "rxjs": DateTime.now().startOf('day').minus({ days: 30 }).toMillis(),
-      "typescript": DateTime.now().startOf('day').minus({ days: 31 }).toMillis()
-    });
-    let result = nodeProcessor.parseDependencies(rawDeps, depUpdatedOn);
+    
+    let result = nodeProcessor.parseDependencies(rawDeps);
     
     let expectedDeps = List([
-     Dependency.fromRaw({ "name": "immmutable", "currentVersion": "4.3.6", "updateVersion": "4.3.6", "isUpToDate": true, "updatedOn": DateTime.now().startOf('day').minus({ days: 29 }).toMillis(), "versions": [] }),
-     Dependency.fromRaw({ "name": "rxjs", "currentVersion": "5.4.2", "updateVersion": "5.4.2", "isUpToDate": true, "updatedOn": DateTime.now().startOf('day').minus({ days: 30 }).toMillis(), "versions": [] }),
-     Dependency.fromRaw({ "name": "typescript", "currentVersion": "4.0.2", "updateVersion": "", "isUpToDate": false, "updatedOn": DateTime.now().startOf('day').minus({ days: 31 }).toMillis(), "versions": [] }),
-     Dependency.fromRaw({ "name": "zone.js", "currentVersion": "7.8.5", "updateVersion": "", "isUpToDate": false, "updatedOn": 0, "versions": [] })
+     Dependency.fromRaw({ "name": "immmutable", "currentVersion": "4.3.6"}),
+     Dependency.fromRaw({ "name": "rxjs", "currentVersion": "5.4.2"}),
+     Dependency.fromRaw({ "name": "typescript", "currentVersion": "4.0.2"}),
+     Dependency.fromRaw({ "name": "zone.js", "currentVersion": "7.8.5"})
     ]);
     expect(result).toEqual(expectedDeps);    
   });
@@ -254,56 +250,6 @@ describe('NodeProcessor', () => {
     });
   });
 
-  it('should consider last updated date for dependency', (done) => {
-    let packageJson = {
-      name:"my-app",
-      version:"1.0.0",
-      dependencies:{
-        "immutable": "4.3.6",
-      },
-      dependencyUpdatedOn:{
-        "immutable":DateTime.now().startOf('day').minus({ days: 29 }).toMillis()
-      }
-    };
-    let downloadInfo = {
-      "downloads":{
-        "4.3.6":21
-      }
-    };
-    let packageInfo = {
-      "dist-tags": {
-      },
-      "time": {
-      }
-    };
-    let getDownloadInfoUrl = (depName:string) => ApiUrl.NodeDownload.replace('${packageName}', encodeURIComponent(depName));
-    let getPackageInfoUrl = (depName:string) => ApiUrl.NodePackage.replace('${packageName}', encodeURIComponent(depName));
-    (mocks.httpClient as any).setMockResponses(List([
-      new MockResponse(getDownloadInfoUrl('immutable'),'',downloadInfo),
-      new MockResponse(getPackageInfoUrl('immutable'),'',packageInfo),
-    ]));
-    let result = nodeProcessor.processPackageJson(JSON.stringify(packageJson));
-    let tracker = new Subject();
-    tracker.pipe(skip(1)).subscribe(()=> {
-      done();
-    });
-
-    let expectedVersions = List([
-      Version.builder().version('4.3.6').downloads(21).relativeDownloads(100).publishDate(-1).tag('').build()
-    ]);
-    result.dependencyList$.pipe(take(1)).subscribe(deps => {
-      expect(deps).toEqual(List([
-        Dependency.builder().name('immutable').currentVersion('4.3.6').updateVersion('4.3.6').isUpToDate(true).updatedOn(DateTime.now().startOf('day').minus({ days: 29 }).toMillis()).versions(expectedVersions).build(),
-      ]));
-      tracker.next(true);
-    });
-
-    result.devDependencyList$.pipe(take(1)).subscribe(deps => {      
-      expect(deps.isEmpty()).toBeTrue();
-      tracker.next(true);  
-    });
-  });
-
   it('should be able to generate updated package json', () => {
     let packageJson = {
       name:"my-app",
@@ -324,8 +270,7 @@ describe('NodeProcessor', () => {
       name:"my-app",
       version:"1.0.0",
       "dependencies":{},
-      "devDependencies":{},
-      "dependencyUpdatedOn":{}
+      "devDependencies":{}
     };
     expect(result).toEqual(JSON.stringify(expectedPackageJson));
 
@@ -336,12 +281,12 @@ describe('NodeProcessor', () => {
       Version.builder().version('4.3.6').downloads(21).relativeDownloads(100).publishDate(-1).tag('').build()
     ]);
     let deps = List([
-      Dependency.builder().name('immutable').currentVersion('4.3.6').updateVersion('4.5.7').isUpToDate(true).updatedOn(DateTime.now().startOf('day').toMillis()).versions(versions).build(),
-      Dependency.builder().name('rxjs').currentVersion('5.4.2').updateVersion('5.4.2').isUpToDate(true).updatedOn(DateTime.now().startOf('day').minus({ days: 29 }).toMillis()).versions(versions).build(),
+      Dependency.builder().name('immutable').currentVersion('4.3.6').updateVersion('4.5.7').isUpToDate(true).versions(versions).build(),
+      Dependency.builder().name('rxjs').currentVersion('5.4.2').updateVersion('5.4.2').isUpToDate(true).versions(versions).build(),
       Dependency.builder().name('zone.js').currentVersion('7.8.5').versions(versions).build()
     ]);
     let devDeps = List([
-      Dependency.builder().name('typescript').currentVersion('4.0.2').updateVersion('4.0.2').isUpToDate(true).updatedOn(DateTime.now().startOf('day').minus({ days: 29 }).toMillis()).versions(versions).build(),
+      Dependency.builder().name('typescript').currentVersion('4.0.2').updateVersion('4.0.2').isUpToDate(true).versions(versions).build(),
       Dependency.builder().name('webpack').currentVersion('11.4.3').versions(List([])).build()
     ]);
 
@@ -357,13 +302,6 @@ describe('NodeProcessor', () => {
       "devDependencies":{
         "typescript":"4.0.2",
         "webpack":"11.4.3"
-      },
-      "dependencyUpdatedOn":{
-        "immutable":DateTime.now().startOf('day').toMillis(),
-        "rxjs":DateTime.now().startOf('day').minus({ days: 29 }).toMillis(),
-        "zone.js":0,
-        "typescript":DateTime.now().startOf('day').minus({ days: 29 }).toMillis(),
-        "webpack":0
       }
     };
     expect(result).toEqual(JSON.stringify(expectedPackageJson));

@@ -14,7 +14,6 @@ describe('Dependency', () => {
                             .currentVersion('')
                             .updateVersion('')
                             .isUpToDate(false)
-                            .updatedOn(0)
                             .versions(List())
                             .build();
         expect(emptyObject1.equals(emptyObject2)).toBeTrue();
@@ -47,8 +46,6 @@ describe('Dependency', () => {
         o1 = Dependency.empty().toBuilder().isUpToDate(true).build();
         o2 = Dependency.empty().toBuilder().isUpToDate(false).build();
         expect(o1.equals(o2)).toBeFalse();
-        o1 = Dependency.empty().toBuilder().updatedOn(Math.round(Math.random() * 10000)).build();
-        o2 = Dependency.empty().toBuilder().updatedOn(Math.round(Math.random() * 10000)).build();
         expect(o1.equals(o2)).toBeFalse();
         o1 = Dependency.empty().toBuilder().versions(List([getRandomVersion()])).build();
         o2 = Dependency.empty().toBuilder().versions(List([getRandomVersion()])).build();
@@ -62,7 +59,6 @@ export function getRandomDependency():Dependency {
         .currentVersion(Math.random()+'')
         .updateVersion(Math.random()+'')
         .isUpToDate(( Math.round(Math.random() * 10000) ) % 2 == 0)
-        .updatedOn(Math.round(Math.random() * 10000))
         .versions(List([getRandomVersion()]))
     .build();
 }

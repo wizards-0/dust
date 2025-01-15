@@ -10,18 +10,6 @@
                 <mat-radio-button value="dark">Dark</mat-radio-button>
             </mat-radio-group>
         </div>
-        <div id="updateCycleSection" class="flex flex-row items-center px-4 pt-4 bottom-divider">
-            <mat-label class="flex w-96 text-base text-on-surface items-center pb-5"><span>Update Cycle</span> <button
-                    mat-icon-button #updateCycleTooltip="matTooltip" (click)="updateCycleTooltip.toggle()" color="primary"
-                    matTooltip="Update cycle is period of days for which dependencies are considered up to date. So if the build file is analysed again, update cycle will be used to determine which dependencies were updated during this period, and hence marked up to date. Check docs for more details">
-                    <mat-icon class="text-primary">info</mat-icon>
-                </button>
-            </mat-label>
-            <mat-form-field class="flex" id="updateCycleInputField" appearance="outline">
-                <mat-label>Days</mat-label>
-                <input matInput type="number" [formControl]="updateCycleInput" class="flex overflow-hidden" />
-            </mat-form-field>
-        </div>
         <div id="proxySection" class="flex flex-row items-center px-4 pt-4">
             <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">
                 <span>Cors Proxy</span>

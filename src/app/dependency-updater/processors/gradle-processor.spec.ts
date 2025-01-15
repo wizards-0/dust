@@ -21,7 +21,7 @@ describe('GradleProcessor', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    gradleProcessor = new GradleProcessor(mocks.apiService,mocks.settingsService);
+    gradleProcessor = new GradleProcessor(mocks.apiService);
   });
 
   it('should parse build file into relavant parts', () => {
@@ -60,16 +60,13 @@ describe('GradleProcessor', () => {
       }
     }
 
-    /* dependencyUpdatedOn {
-    }*/
     `.replaceAll('\'', '"').split('\n');
 
     result = gradleProcessor.getBuildFileParts(List(buildFileLines));
     expect(result).toEqual(new GradleFile(
       List(buildFileLines),
       new FileIndexRange(2, 4),
-      new FileIndexRange(7, 17),
-      new FileIndexRange(19, 20)
+      new FileIndexRange(7, 17)
     ));
 
     expect(result.getPluginLines()).toEqual(jsonMatching(List(['      plugins {', '        id "java-library"', '      }'])));
@@ -88,28 +85,9 @@ describe('GradleProcessor', () => {
 
   `
       .replaceAll('\'', '"').split('\n'));
-    let result = gradleProcessor.parseDependencyLines(dependencyLines, {});
+    let result = gradleProcessor.parseDependencyLines(dependencyLines);
     expect(result).toEqual(jsonMatching(List([
       Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').build()
-    ])));
-
-    let lastUpdated;
-    lastUpdated = DateTime.now().minus({days: 29}).startOf('day').toMillis();
-    result = gradleProcessor.parseDependencyLines(dependencyLines, {"com.google.guava:guava":lastUpdated});
-    expect(result).toEqual(jsonMatching(List([
-      Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').updateVersion('28.1-jre').isUpToDate(true).updatedOn(lastUpdated).build()
-    ])));
-
-    lastUpdated = DateTime.now().minus({days: 30}).startOf('day').toMillis();
-    result = gradleProcessor.parseDependencyLines(dependencyLines, {"com.google.guava:guava":lastUpdated});
-    expect(result).toEqual(jsonMatching(List([
-      Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').updateVersion('28.1-jre').isUpToDate(true).updatedOn(lastUpdated).build()
-    ])));
-
-    lastUpdated = DateTime.now().minus({days: 31}).startOf('day').toMillis();
-    result = gradleProcessor.parseDependencyLines(dependencyLines, {"com.google.guava:guava":lastUpdated});
-    expect(result).toEqual(jsonMatching(List([
-      Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').updatedOn(lastUpdated).build()
     ])));
 
   });
@@ -127,39 +105,11 @@ describe('GradleProcessor', () => {
 
   `
       .replaceAll('\'', '"').split('\n'));
-    let result = gradleProcessor.parsePluginLines(dependencyLines, {});
+    let result = gradleProcessor.parsePluginLines(dependencyLines);
     expect(result).toEqual(jsonMatching(List([
       Dependency.builder().name('info.solidsoft.pitest').currentVersion('1.15.0').build(),
       Dependency.builder().name('org.sonarqube').currentVersion('5.1.0.4882').build()
     ])));
-  });
-
-  it('should be able to parse last dependency update from build file', () => {
-    let lines = List(['']);
-    let gradleFile = new GradleFile(lines, new FileIndexRange(-1, -1), new FileIndexRange(-1, -1), new FileIndexRange(-1, -1));
-    let result = gradleFile.getDependencyUpdatedOn();
-    expect(result).toEqual({});
-
-    lines = List(`
-      /*dependencyUpdatedOn {
-      }*/
-      `.split('\n'));
-    gradleFile = gradleProcessor.getBuildFileParts(lines);
-    result = gradleFile.getDependencyUpdatedOn();
-    expect(result).toEqual({});
-
-    lines = List(`
-        /*dependencyUpdatedOn {
-          "org.sonarqube":0
-          "com.google.guava:guava":0
-        }*/
-        `.split('\n'));
-    gradleFile = gradleProcessor.getBuildFileParts(lines);
-    result = gradleFile.getDependencyUpdatedOn();
-    expect(result).toEqual({
-      "org.sonarqube":0,
-      "com.google.guava:guava":0
-    });
   });
 
   it('should be able to fetch maven dependency versions', (done) => {
@@ -314,13 +264,7 @@ describe('GradleProcessor', () => {
       List([Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').build()]),
       List([Dependency.builder().name('info.solidsoft.pitest').currentVersion('1.15.0').build()])
     );
-    let expectedBuildFile = buildFile + 
-`
-/* dependencyUpdatedOn {
-"com.google.guava:guava":0
-"info.solidsoft.pitest":0
-} */`
-    expect(result).toEqual(expectedBuildFile);
+    expect(result).toEqual(buildFile);
   });
 
   it('should be able to generate updated build file with update version & replace dependency updated on section', () => {
@@ -339,18 +283,12 @@ describe('GradleProcessor', () => {
       implementation "org.springframework.boot:spring-boot-starter-web"
       implementation "com.google.guava:guava:28.1-jre"
 
-    }
-
-    /* dependencyUpdatedOn {
-      "com.google.guava:guava":0
-    } */
-    `
+    }`
     let gradleFile = gradleProcessor.getBuildFileParts(List(buildFile.split('\n')));
     gradleProcessor.gradleFile = gradleFile;
-    let lastUpdated = DateTime.now().startOf('day').toMillis();
     let result = gradleProcessor.getUpdatedGradleFile(
-      List([Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').updateVersion('29').updatedOn(lastUpdated).build()]),
-      List([Dependency.builder().name('info.solidsoft.pitest').currentVersion('1.15.0').updateVersion('2.1').updatedOn(lastUpdated).build()])
+      List([Dependency.builder().name('com.google.guava:guava').currentVersion('28.1-jre').updateVersion('29').build()]),
+      List([Dependency.builder().name('info.solidsoft.pitest').currentVersion('1.15.0').updateVersion('2.1').build()])
     );
     let expectedBuildFile = 
 `
@@ -367,12 +305,7 @@ describe('GradleProcessor', () => {
       implementation "org.springframework.boot:spring-boot-starter-web"
       implementation "com.google.guava:guava:29"
 
-    }
-
-/* dependencyUpdatedOn {
-"com.google.guava:guava":${lastUpdated}
-"info.solidsoft.pitest":${lastUpdated}
-} */`
+    }`
     expect(result).toEqual(expectedBuildFile);
   });
 

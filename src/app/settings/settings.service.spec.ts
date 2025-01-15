@@ -14,7 +14,7 @@ describe('SettingsService', () => {
     });
 
     it('should be able to fetch previously saved settings from local storage', () => {
-        let settings = new Settings('light',30,'https://www.some.bs');
+        let settings = new Settings('light','https://www.some.bs');
         spyOn(localStorage,'getItem')
             .and.returnValue(JSON.stringify(settings));
         settingsService = new SettingsService();
@@ -22,7 +22,7 @@ describe('SettingsService', () => {
     });
 
     it('should be able to update settings', () => {
-        let settings = new Settings('light',30,'https://www.some.bs');
+        let settings = new Settings('light','https://www.some.bs');
         spyOn(localStorage,'getItem')
             .and.returnValue(undefined as any);
         spyOn(localStorage,'setItem');

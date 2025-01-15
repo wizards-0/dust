@@ -6,7 +6,6 @@ import { Dependency } from '../model/dependency';
 import { List } from 'immutable';
 import { Version } from '../model/version';
 
-import { MatCard } from '@angular/material/card';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatButtonModule} from '@angular/material/button';
@@ -15,8 +14,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTableModule} from '@angular/material/table';
 import {MatRadioModule} from '@angular/material/radio';
 import { AsyncPipe } from '@angular/common';
-import { SettingsService } from '../../settings/settings.service';
-
 
 @Component({
   selector: 'dependency-update-selector',
@@ -29,7 +26,7 @@ import { SettingsService } from '../../settings/settings.service';
     ]),
   ],
   standalone: true,
-  imports: [MatCard,MatInputModule,MatButtonModule,ButtonComponent,MatFormFieldModule,MatIconModule,MatTableModule,MatRadioModule,AsyncPipe],
+  imports: [MatInputModule,MatButtonModule,ButtonComponent,MatFormFieldModule,MatIconModule,MatTableModule,MatRadioModule,AsyncPipe],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DependencyUpdateSelectorComponent {
@@ -38,9 +35,7 @@ export class DependencyUpdateSelectorComponent {
   //@Output, will hold the same reference of behavior subject as parent on init. Any emits on this datasource will be received by parent
   _dataSource:BehaviorSubject<List<Dependency>> = new BehaviorSubject(List());
   depsArr$:Observable<Dependency[]> = of([]);
-  updateCycle:string;
-  constructor(settingsService:SettingsService){
-    this.updateCycle = settingsService.getSettings().updateCycle+'';
+  constructor(){
   }
 
   @Input()
@@ -79,7 +74,6 @@ export class DependencyUpdateSelectorComponent {
     let dependencyToUpdate = dependencies.get(rowIndex,Dependency.empty())
     .with(dep => {
       dep.isUpToDate(true);
-      dep.updatedOn(DateTime.now().toMillis());
       dep.updateVersion(this.updateVersionTemp.value);
     });    
     this._dataSource.next(dependencies.set(rowIndex,dependencyToUpdate));

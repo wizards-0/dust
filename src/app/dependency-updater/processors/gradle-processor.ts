@@ -1,30 +1,27 @@
-import { HttpClient } from "@angular/common/http";
 import { List, Map } from "immutable";
 import { Dependency } from "../model/dependency";
 import { Version } from "../model/version";
-import { catchError, delay, from, map, mergeAll, Observable, of, reduce, retry } from "rxjs";
+import { catchError, from, map, mergeAll, Observable, of, reduce } from "rxjs";
 import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
 import { DateTime } from "luxon";
 import { Injectable } from "@angular/core";
 import { ApiService } from "../../api-service/api.service";
-import { SettingsService } from "../../settings/settings.service";
 
 @Injectable({
     providedIn: 'root',
 })
 export class GradleProcessor {
     
-    gradleFile:GradleFile = new GradleFile(List([]),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1));
+    gradleFile:GradleFile = new GradleFile(List([]),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1));
 
-    constructor(private apiService: ApiService, private settingsService:SettingsService) { }
+    constructor(private readonly apiService: ApiService) { }
 
     processBuildGradle(buildGradle: string) {
         let lines = List(buildGradle.replaceAll('\'', '"').split('\n'));
         this.gradleFile = this.getBuildFileParts(lines);
-        let dependencyUpdatedOn = this.gradleFile.getDependencyUpdatedOn();
 
-        const dependencies = this.parseDependencyLines(this.gradleFile.getDependencyLines(), dependencyUpdatedOn);
-        const pluginDependencies = this.parsePluginLines(this.gradleFile.getPluginLines(),dependencyUpdatedOn);
+        const dependencies = this.parseDependencyLines(this.gradleFile.getDependencyLines());
+        const pluginDependencies = this.parsePluginLines(this.gradleFile.getPluginLines());
 
         return {
             dependencyList$: this.fetchVersions(dependencies),
@@ -98,7 +95,7 @@ export class GradleProcessor {
         let initialValue:{currentSection:string,braceCount:number,fileParts:GradleFile} = {
             currentSection: '',
             braceCount: 0,
-            fileParts: new GradleFile(lines,new FileIndexRange(-1,-1),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1))
+            fileParts: new GradleFile(lines,new FileIndexRange(-1,-1),new FileIndexRange(-1,-1))
         }
 
         let accumulatedResult = lines.reduce((accumulator:{currentSection:string,braceCount:number,fileParts:GradleFile}, line:string, index:number) => {
@@ -115,11 +112,6 @@ export class GradleProcessor {
 
             if (line.includes('dependencies') || line.includes('dependencyResolutionManagement')) {
                 section = 'dependencies';
-                sectionStartIndex = index;
-            }
-
-            if (line.includes('dependencyUpdatedOn')) {
-                section = 'dependencyUpdatedOn';
                 sectionStartIndex = index;
             }
 
@@ -142,11 +134,6 @@ export class GradleProcessor {
                     updatedFileParts = fileParts.withDependencyLineIndices(new FileIndexRange(startIndex,index));
                     break;
                 }
-                case 'dependencyUpdatedOn': {
-                    let startIndex = sectionStartIndex != -1 ? sectionStartIndex : fileParts.dependencyUpdatedOnLineIndices.startIndex;
-                    updatedFileParts = fileParts.withDependencyUpdatedOnLineIndices(new FileIndexRange(startIndex,index));
-                    break;
-                }
                 default: {
                     updatedFileParts = fileParts;
                 }
@@ -167,14 +154,14 @@ export class GradleProcessor {
     }
 
 
-    parsePluginLines(pluginLines: List<string>, dependencyUpdatedOn: any) {
+    parsePluginLines(pluginLines: List<string>) {
         const dependencies = List(pluginLines).map(line => {
             let matches = RegExp(/.*"(.*?)".*?"(.*?)".*/).exec(line);
 
             if (matches) {
                 let pluginName = matches[1];
                 let currentVersion = matches[2];
-                return this.createDependency(pluginName,currentVersion,dependencyUpdatedOn);
+                return this.createDependency(pluginName,currentVersion);
             } else {
                 return null;
             }
@@ -183,7 +170,7 @@ export class GradleProcessor {
         return dependencies;
     }
 
-    parseDependencyLines(dependencyLines: List<string>, dependencyUpdatedOn: any) {
+    parseDependencyLines(dependencyLines: List<string>) {
         const dependencies = List(dependencyLines).map(line => {
             let matches = RegExp(/.*"(.*?:.*?:.*?)".*/).exec(line);
             if (matches) {
@@ -191,7 +178,7 @@ export class GradleProcessor {
                 let dependencyParts = dependency.split(':');
                 let name = dependencyParts[0] + ':' + dependencyParts[1];
                 let currentVersion = dependencyParts[2];
-                return this.createDependency(name,currentVersion,dependencyUpdatedOn);
+                return this.createDependency(name,currentVersion);
             } else {
                 return null;
             }
@@ -237,56 +224,25 @@ export class GradleProcessor {
             }
         });
 
-        
-
-        let dependencyUpdatedOnLines = List<string>([])
-            .push('/* dependencyUpdatedOn {')
-            .concat(dependencyList.concat(pluginDependencyList).map(dep => `"${dep.name}":${dep.updatedOn}`))
-            .push('} */');
-
         let updatedLines = this.gradleFile.lines.map( (line:string,index:number) => {
             let updatedLine;
             if(index >= this.gradleFile.pluginLineIndices.startIndex && index <= this.gradleFile.pluginLineIndices.endIndex){
                 updatedLine = updatedPluginLines.get(index-this.gradleFile.pluginLineIndices.startIndex,'');
             } else if(index >= this.gradleFile.dependencyLineIndices.startIndex && index <= this.gradleFile.dependencyLineIndices.endIndex){
                 updatedLine = updatedDependencyLines.get(index-this.gradleFile.dependencyLineIndices.startIndex,'');
-            } else if(this.gradleFile.dependencyUpdatedOnLineIndices.startIndex !=-1 && index >= this.gradleFile.dependencyUpdatedOnLineIndices.startIndex){
-                updatedLine = undefined;
-            }
-            else {
+            } else {
                 updatedLine = line
             }
             return updatedLine;
         }).filter(line => line != undefined);
-        return updatedLines.concat(dependencyUpdatedOnLines).join('\n');
+        return updatedLines.join('\n');
     }
 
-    private createDependency(name: string, currentVersion: string, dependencyUpdatedOn: any): Dependency {
-        let updatedOn: number;
-        let updateVersion: string;
-        let isUpToDate: boolean;
-        if (dependencyUpdatedOn.hasOwnProperty(name)) {
-            updatedOn = dependencyUpdatedOn[name];
-        } else {
-            updatedOn = 0;
-        }
-
-        //TODO: make 30 configurable
-        let diffInDays = DateTime.now().startOf('day').diff(DateTime.fromMillis(updatedOn).startOf('day')).as('days');
-
-        if (diffInDays <= this.settingsService.getSettings().updateCycle) {
-            updateVersion = currentVersion;
-            isUpToDate = true;
-        } else {
-            updateVersion = '';
-            isUpToDate = false;
-        }
+    private createDependency(name: string, currentVersion: string): Dependency {
+        
         return Dependency.builder()
             .name(name)
             .currentVersion(currentVersion)
-            .updateVersion(updateVersion)
-            .updatedOn(updatedOn)
-            .isUpToDate(isUpToDate)
             .build();
     }
 }
@@ -295,35 +251,23 @@ export class GradleFile {
     public readonly lines:List<string>;
     public readonly pluginLineIndices:FileIndexRange;
     public readonly dependencyLineIndices:FileIndexRange;
-    public readonly dependencyUpdatedOnLineIndices:FileIndexRange;
-    constructor(lines:List<string>,pluginLineIndices:FileIndexRange,dependencyLineIndices:FileIndexRange,dependencyUpdatedOnLineIndices:FileIndexRange){
+    constructor(lines:List<string>,pluginLineIndices:FileIndexRange,dependencyLineIndices:FileIndexRange){
         this.lines = lines;
         this.pluginLineIndices = pluginLineIndices;
         this.dependencyLineIndices = dependencyLineIndices;
-        this.dependencyUpdatedOnLineIndices = dependencyUpdatedOnLineIndices;
     }
     withPluginLineIndices(pluginLineIndices:FileIndexRange):GradleFile{
         return new GradleFile(
             this.lines,
             pluginLineIndices,
-            this.dependencyLineIndices,
-            this.dependencyUpdatedOnLineIndices
+            this.dependencyLineIndices
         );
     }
     withDependencyLineIndices(dependencyLineIndices:FileIndexRange):GradleFile{
         return new GradleFile(
             this.lines,
             this.pluginLineIndices,
-            dependencyLineIndices,
-            this.dependencyUpdatedOnLineIndices
-        );
-    }
-    withDependencyUpdatedOnLineIndices(dependencyUpdatedOnLineIndices:FileIndexRange):GradleFile{
-        return new GradleFile(
-            this.lines,
-            this.pluginLineIndices,
-            this.dependencyLineIndices,
-            dependencyUpdatedOnLineIndices
+            dependencyLineIndices
         );
     }
     getPluginLines():List<string> {
@@ -331,16 +275,6 @@ export class GradleFile {
     }
     getDependencyLines():List<string> {
         return this.lines.slice(this.dependencyLineIndices.startIndex,this.dependencyLineIndices.endIndex+1);
-    }
-    getDependencyUpdatedOn() {         
-         if(this.dependencyUpdatedOnLineIndices.startIndex != -1){            
-            let dependencyUpdatedOnLines = this.lines.slice(this.dependencyUpdatedOnLineIndices.startIndex,this.dependencyUpdatedOnLineIndices.endIndex+1);            
-            let jsonPart = dependencyUpdatedOnLines.slice(1,-1).join(',');            
-            let dependencyUpdatedOnJson = '{' + jsonPart.substring(0, jsonPart.length) + '}';
-            return JSON.parse(dependencyUpdatedOnJson);    
-        } else {
-            return {};
-        }
     }
 }
 

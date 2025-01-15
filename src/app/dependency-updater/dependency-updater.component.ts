@@ -84,24 +84,6 @@ export class DependencyUpdaterComponent {
 
   }
 
-  markAll(): void {
-    let copyCurrentToUpdateVersion = (dep: Dependency) => dep.updateVersion ? dep
-      : dep.toBuilder()
-        .updateVersion(dep.currentVersion)
-        .updatedOn(DateTime.now().toMillis())
-        .isUpToDate(true)
-        .build();
-
-    const dependencies = this.dependenciesDataSource.value.map(copyCurrentToUpdateVersion);
-    const devDependencies = this.devDependenciesDataSource.value.map(copyCurrentToUpdateVersion);
-    const pluginDependencies = this.pluginDependenciesDataSource.value.map(copyCurrentToUpdateVersion);
-
-    this.dependenciesDataSource.next(dependencies);
-    this.devDependenciesDataSource.next(devDependencies);
-    this.pluginDependenciesDataSource.next(pluginDependencies);
-    this.alertService.show('Marked all current dependencies as updated',AlertCategory.info,2000);
-  }
-
   copyPackageJson(): void {
     this.clipboard.copy(this.nodeProcessor.getUpdatedPackageJson(
       this.dependenciesDataSource.value,

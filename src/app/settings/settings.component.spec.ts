@@ -7,7 +7,7 @@ describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let settingsService: SettingsService;
   beforeEach(() => {
-    let settings = new Settings('dark', 30, 'https://www.some.bs');
+    let settings = new Settings('dark', 'https://www.some.bs');
     spyOn(localStorage, 'getItem')
       .and.returnValue(JSON.stringify(settings));
 
@@ -35,7 +35,6 @@ describe('SettingsComponent', () => {
   it('should get fetch settings from local storage on init', () => {
     component.ngOnInit();
     expect(component.themeInput.value).toBe('dark');
-    expect(component.updateCycleInput.value).toBe(30);
     expect(component.proxyUrlInput.value).toBe('https://www.some.bs');
   });
 
@@ -44,21 +43,11 @@ describe('SettingsComponent', () => {
     spyOn(component,'selectTheme');
     component.ngOnInit();
     component.themeInput.valueChanges.subscribe(() => {
-      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('light', 30, 'https://www.some.bs'));
+      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('light', 'https://www.some.bs'));
       expect(component.selectTheme).toHaveBeenCalledOnceWith('light');
       done();
     });
     component.themeInput.setValue(undefined as any);
-  });
-
-  it('should subscribe to update cycle value changes on init', (done) => {
-    spyOn(settingsService, 'updateSettings');
-    component.ngOnInit();
-    component.updateCycleInput.valueChanges.subscribe(() => {
-      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark', 29, 'https://www.some.bs'));
-      done();
-    });
-    component.updateCycleInput.setValue(29);
   });
 
   it('should subscribe to proxy url value changes on init', (done) => {
@@ -66,7 +55,7 @@ describe('SettingsComponent', () => {
     spyOn(component,'selectTheme');
     component.ngOnInit();
     component.proxyUrlInput.valueChanges.subscribe(() => {
-      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark', 30, 'mid'));
+      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark',  'mid'));
       done();
     });
     component.proxyUrlInput.setValue('mid');
@@ -75,10 +64,9 @@ describe('SettingsComponent', () => {
   it('should get save settings to local storage on change', () => {
     spyOn(settingsService, 'updateSettings');
     component.themeInput.setValue('dark');
-    component.updateCycleInput.setValue(29)
     component.proxyUrlInput.setValue('url')
     component.updateSettings();
-    expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark', 29, 'url'));
+    expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark', 'url'));
   });
 
   it('should unsubscribe to all value change on destroy', () => {

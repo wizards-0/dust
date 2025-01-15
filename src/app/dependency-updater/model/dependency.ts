@@ -9,7 +9,6 @@ export class Dependency implements ValueObject {
     public readonly currentVersion:string;
     public readonly updateVersion:string;
     public readonly isUpToDate:boolean;
-    public readonly updatedOn:number;
     public readonly versions:List<Version>;
 
     constructor(
@@ -17,14 +16,12 @@ export class Dependency implements ValueObject {
         currentVersion:string,
         updateVersion:string,
         isUpToDate:boolean,
-        updatedOn:number,
         versions:List<Version>
     ) {
         this.name = withDefault(name,'');
         this.currentVersion = withDefault(currentVersion,'');
         this.updateVersion = withDefault(updateVersion,'');
         this.isUpToDate = withDefault(isUpToDate,false);
-        this.updatedOn = withDefault(updatedOn,0);
         this.versions = withDefault(versions,List());
     }
 
@@ -38,7 +35,6 @@ export class Dependency implements ValueObject {
             .currentVersion('')
             .updateVersion('')
             .isUpToDate(false)
-            .updatedOn(0)
             .versions(List())
         .build();
     }
@@ -48,7 +44,6 @@ export class Dependency implements ValueObject {
         const currentVersion:string = raw.currentVersion;
         const updateVersion:string = raw.updateVersion;
         const isUpToDate:boolean = raw.isUpToDate;
-        const updatedOn:number = raw.updatedOn;
         const versions:List<Version> = !!raw.versions ? List(raw.versions.map( (item:any) => Version.fromRaw(item))) : List();
 
         return new Dependency(
@@ -56,7 +51,6 @@ export class Dependency implements ValueObject {
             currentVersion,
             updateVersion,
             isUpToDate,
-            updatedOn,
             versions
         );
     }
@@ -67,7 +61,6 @@ export class Dependency implements ValueObject {
         builder.currentVersion(this.currentVersion);
         builder.updateVersion(this.updateVersion);
         builder.isUpToDate(this.isUpToDate);
-        builder.updatedOn(this.updatedOn);
         builder.versions(this.versions);
         return builder;
     }
@@ -90,8 +83,6 @@ export class Dependency implements ValueObject {
             &&
             this.isUpToDate === that.isUpToDate
             &&
-            this.updatedOn === that.updatedOn
-            &&
             equals(this.versions,that.versions)
             ;
     }
@@ -102,7 +93,6 @@ export class Dependency implements ValueObject {
             this.currentVersion,
             this.updateVersion,
             this.isUpToDate,
-            this.updatedOn,
             this.versions
         ]));
     }
@@ -113,7 +103,6 @@ export class DependencyBuilder {
     private _currentVersion:string = '';
     private _updateVersion:string = '';
     private _isUpToDate:boolean = false;
-    private _updatedOn:number = 0;
     private _versions:List<Version> = List();
 
     public build():Dependency {
@@ -122,7 +111,6 @@ export class DependencyBuilder {
             this._currentVersion,
             this._updateVersion,
             this._isUpToDate,
-            this._updatedOn,
             this._versions
         );
     }
@@ -142,11 +130,7 @@ export class DependencyBuilder {
     public isUpToDate(isUpToDate:boolean):DependencyBuilder {
         this._isUpToDate = isUpToDate;
         return this;
-    }
-    public updatedOn(updatedOn:number):DependencyBuilder {
-        this._updatedOn = updatedOn;
-        return this;
-    }
+    }    
     public versions(versions:List<Version>):DependencyBuilder {
         this._versions = versions;
         return this;

@@ -1,4 +1,3 @@
-import { HttpClient } from "@angular/common/http";
 import { List, Map } from "immutable";
 import { DateTime } from "luxon";
 import { from, map, mergeAll, Observable, of, reduce } from "rxjs";
@@ -7,7 +6,6 @@ import { Version } from "../model/version";
 import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
 import { Injectable } from "@angular/core";
 import { ApiService } from "../../api-service/api.service";
-import { SettingsService } from "../../settings/settings.service";
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +16,7 @@ export class NodeProcessor {
 
   private readonly versionDownloadsComparator = (v1: Version, v2: Version) => ((v2.downloads) - (v1.downloads));
 
-  constructor(private apiService: ApiService, private settingsService:SettingsService) { }
+  constructor(private apiService: ApiService) { }
 
 
   public processPackageJson(packageJson: string) {
@@ -31,10 +29,9 @@ export class NodeProcessor {
 
     const dependencies = Map(this.packageJson['dependencies']);
     const devDependencies = Map(this.packageJson['devDependencies']);
-    const dependencyUpdatedOn: Map<string, number> = Map(this.packageJson.hasOwnProperty('dependencyUpdatedOn') ? this.packageJson['dependencyUpdatedOn'] : {});
 
-    let dependencyList = this.parseDependencies(dependencies, dependencyUpdatedOn);
-    let devDependencyList = this.parseDependencies(devDependencies, dependencyUpdatedOn);
+    let dependencyList = this.parseDependencies(dependencies);
+    let devDependencyList = this.parseDependencies(devDependencies);
 
     return {
       dependencyList$: this.fetchVersions(dependencyList),
@@ -42,30 +39,17 @@ export class NodeProcessor {
     }
   }
 
-  parseDependencies(dependencies: Map<any, any>, dependencyUpdatedOn: Map<string, number>): List<Dependency> {
+  parseDependencies(dependencies: Map<any, any>): List<Dependency> {
     return List(dependencies.entrySeq().map(entry => {
       let name = entry[0] as string;
       let currentVersion = entry[1];
       let updateVersion;
-      let isUpToDate;
-      let lastUpdatedDate = DateTime.fromMillis(dependencyUpdatedOn.get(name, 0));
-      //TODO: make 30 configurable
-      let diffInDays = DateTime.now().startOf('day').diff(lastUpdatedDate.startOf('day')).as('days');
-
-      if (diffInDays <= this.settingsService.getSettings().updateCycle) {
-        updateVersion = currentVersion;
-        isUpToDate = true;
-      } else {
-        updateVersion = undefined;
-        isUpToDate = false;
-      }
 
       return Dependency.fromRaw({
         name: name,
         currentVersion: currentVersion,
         updateVersion: updateVersion,
-        isUpToDate: isUpToDate,
-        updatedOn: lastUpdatedDate.toMillis()
+        isUpToDate: false
       });
 
     }));
@@ -135,16 +119,8 @@ export class NodeProcessor {
     const dependencies = this.transfromDependencyListToMap(dependencyList);
     const devDependencies = this.transfromDependencyListToMap(devDependencyList);
 
-    const dependencyUpdatedOn = Map(dependencyList.concat(devDependencyList).map(dep => {
-      return [
-        dep.name,
-        dep.updatedOn
-      ]
-    }));
-
     this.packageJson['dependencies'] = dependencies;
     this.packageJson['devDependencies'] = devDependencies;
-    this.packageJson['dependencyUpdatedOn'] = dependencyUpdatedOn;
     return JSON.stringify(this.packageJson);
   }
 

@@ -5,7 +5,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ButtonComponent } from 'ace-common-components';
 import { SettingsService } from './settings.service';
 import { Settings } from './settings';
 import { Subscription } from 'rxjs';
@@ -14,7 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [ButtonComponent,ReactiveFormsModule,MatTooltipModule,MatFormFieldModule,MatIconModule,MatButtonModule,MatRadioModule,MatInputModule],
+  imports: [ReactiveFormsModule,MatTooltipModule,MatFormFieldModule,MatIconModule,MatButtonModule,MatRadioModule,MatInputModule],
   templateUrl: './settings.component.html',
   host: {class: 'flex basis-full w-full h-full'},
   styleUrl: './settings.component.scss',
@@ -23,11 +22,10 @@ import { MatButtonModule } from '@angular/material/button';
 export class SettingsComponent implements OnInit,OnDestroy {
 
   themeInput = new FormControl<string>('');
-  updateCycleInput = new FormControl<number>(30);
   proxyUrlInput = new FormControl<string>('');
   subs = new Subscription();
 
-  constructor(private settingsService:SettingsService) {
+  constructor(private readonly settingsService:SettingsService) {
     
   }
   ngOnDestroy(): void {
@@ -36,13 +34,9 @@ export class SettingsComponent implements OnInit,OnDestroy {
 
   ngOnInit(): void {
     this.themeInput.setValue(this.settingsService.getSettings().theme);
-    this.updateCycleInput.setValue(this.settingsService.getSettings().updateCycle);
     this.proxyUrlInput.setValue(this.settingsService.getSettings().corsProxy);
     this.subs.add(this.themeInput.valueChanges.subscribe(() => {
       this.selectTheme(this.themeInput.value ?? 'light');
-      this.updateSettings();
-    }));
-    this.subs.add(this.updateCycleInput.valueChanges.subscribe(() => {
       this.updateSettings();
     }));
     this.subs.add(this.proxyUrlInput.valueChanges.subscribe(() => {
@@ -62,7 +56,6 @@ export class SettingsComponent implements OnInit,OnDestroy {
     this.settingsService.updateSettings(
       new Settings(
         this.themeInput.value,
-        this.updateCycleInput.value,
         this.proxyUrlInput.value
       ));
   }

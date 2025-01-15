@@ -4,6 +4,7 @@ import { MatCard } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from './settings/settings.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -14,11 +15,15 @@ import { SettingsService } from './settings/settings.service';
 })
 export class AppComponent {
   title = 'dust';
-  constructor(settingsService:SettingsService){
+
+  docsUrl: SafeUrl;
+  
+  constructor(settingsService:SettingsService,sanitizer: DomSanitizer){
+    this.docsUrl = sanitizer.bypassSecurityTrustResourceUrl('/docs/index.html?theme='+settingsService.getSettings().theme);
     if(settingsService.getSettings().theme == 'dark'){
       document.body.classList.add('dark-theme');
     }
-    console.info(`Update Cycle : ${settingsService.getSettings().updateCycle}`);
+
     if(settingsService.getSettings().corsProxy) {
       console.info(`Cors Proxy : ${settingsService.getSettings().corsProxy}`);
     } else {
