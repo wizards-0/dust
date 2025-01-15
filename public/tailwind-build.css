@@ -104,10 +104,6 @@
   border-style: solid
 }
 
-.border-none {
-  border-style: none
-}
-
 .bg-primary {
   background-color: var(--primary)
 }
