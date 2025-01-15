@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --base-href /dust/",
     "watch": "ng build --watch --configuration development",
     "test": "concurrently \"node cors_proxy/server.js\" \"ng test\"",
     "tailwind": "tailwind -o public/tailwind-build.css --watch",
