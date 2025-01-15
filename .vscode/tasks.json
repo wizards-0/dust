@@ -19,6 +19,9 @@
             "regexp": "bundle generation complete"
           }
         }
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
       }
     },
     {
@@ -38,6 +41,19 @@
           }
         }
       }
+    },
+    {
+      "type": "go",
+      "label": "go: build package",
+      "command": "build",
+      "args": [
+        "${fileDirname}"
+      ],
+      "problemMatcher": [
+        "$go"
+      ],
+      "group": "build",
+      "detail": "cd c:\\Workspaces\\dust; go build ${fileDirname}"
     }
   ]
 }
