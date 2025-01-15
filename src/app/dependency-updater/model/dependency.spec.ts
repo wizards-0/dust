@@ -2,7 +2,6 @@
 import {Dependency} from './dependency';
 
 import {List} from 'immutable';
-import {Version} from './version';
 import {getRandomVersion} from './version.spec';
 
 describe('Dependency', () => {

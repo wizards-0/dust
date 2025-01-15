@@ -41,11 +41,11 @@ export class DependencyUpdaterComponent {
   pluginDependenciesDataSource = new BehaviorSubject<List<Dependency>>(List([]));
 
   constructor(    
-    private clipboard: Clipboard,
-    private cdr: ChangeDetectorRef,
-    private alertService:AlertService,
-    private nodeProcessor:NodeProcessor,
-    private gradleProcessor: GradleProcessor
+    private readonly clipboard: Clipboard,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly alertService:AlertService,
+    private readonly nodeProcessor:NodeProcessor,
+    private readonly gradleProcessor: GradleProcessor
   ) {
   }
 

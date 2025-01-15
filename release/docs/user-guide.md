@@ -75,7 +75,8 @@ This version will be populated in the text box above grid, this is done to provi
 When selecting a new version, If the existing version had identifiable [prefix*](/user-guide?id=version-prefix), it is automatically added to the new version. This is done as it is the most common way to describe versions in node. Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
 
 Text Box can also be used to specify version for local dependencies manually. Click on select button after confirming the version is in text box, to complete version selection.
-Sub grid will auto collapse on clicking select to speed up the process. Dependency will be marked with green check to track progress.
+Sub grid will auto collapse on clicking select to speed up the process. Dependency will have update version populated in main grid 
+and it will be marked with green check to track progress.
 
 #### *Version Prefix
 If version is in format ```[symbols][wordChars].[wordChars].[wordChars]```, then symbols at the beginning are treated as prefix
