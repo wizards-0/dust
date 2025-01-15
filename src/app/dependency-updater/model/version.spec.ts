@@ -11,7 +11,7 @@ describe('Version', () => {
                             .downloads(-1)
                             .relativeDownloads(0)
                             .tag('')
-                            .vulnerabilityCount(0)
+                            .vulnerabilityCount(-1)
                             .publishDate(-1)
                             .build();
         expect(emptyObject1.equals(emptyObject2)).toBeTrue();
@@ -19,6 +19,7 @@ describe('Version', () => {
         const randomValueClone = Version.fromRaw(JSON.parse(JSON.stringify(randomValue)));
         expect(randomValue.equals(randomValueClone)).toBeTrue();
         expect(randomValue.hashCode()).toBe(randomValueClone.hashCode());
+        expect(Version.fromRaw({})).toEqual(Version.empty());
     });
 
     it('should be able to compare same type objects', () => {

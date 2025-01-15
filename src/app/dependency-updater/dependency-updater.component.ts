@@ -8,9 +8,7 @@ import { Version } from './model/version';
 import { NodeProcessor } from './processors/node-processor';
 import { GradleProcessor } from './processors/gradle-processor';
 import { Dependency } from './model/dependency';
-import { DateTime } from 'luxon';
 
-import { MatCard } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,7 +22,7 @@ import { DependencyUpdateSelectorComponent } from './dependency-update-selector/
     selector: 'dependency-updater',
     templateUrl: './dependency-updater.component.html',
     host: { class: 'flex basis-full w-full h-full' },
-    imports: [MatCard, MatInputModule, ButtonComponent, MatButtonModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
+    imports: [MatInputModule, ButtonComponent, MatButtonModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
     providers: [AlertService],
     changeDetection: ChangeDetectionStrategy.OnPush
 })

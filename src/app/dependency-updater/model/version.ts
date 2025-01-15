@@ -1,5 +1,4 @@
 import {ValueObject,hash} from 'immutable';
-import {equals,withDefault} from 'ace-common-util';
 
 export class Version implements ValueObject {
 
@@ -18,12 +17,12 @@ export class Version implements ValueObject {
         vulnerabilityCount:number,
         publishDate:number
     ) {
-        this.version = withDefault(version,'');
-        this.downloads = withDefault(downloads,-1);
-        this.relativeDownloads = withDefault(relativeDownloads,0);
-        this.tag = withDefault(tag,'');
-        this.vulnerabilityCount = withDefault(vulnerabilityCount,-1);
-        this.publishDate = withDefault(publishDate,-1);
+        this.version = version ?? '';
+        this.downloads = downloads ?? -1;
+        this.relativeDownloads = relativeDownloads ?? 0;
+        this.tag = tag ?? '';
+        this.vulnerabilityCount = vulnerabilityCount ?? -1;
+        this.publishDate = publishDate ?? -1;
     }
 
     public static  builder():VersionBuilder {
@@ -36,7 +35,7 @@ export class Version implements ValueObject {
             .downloads(-1)
             .relativeDownloads(0)
             .tag('')
-            .vulnerabilityCount(0)
+            .vulnerabilityCount(-1)
             .publishDate(-1)
         .build();
     }

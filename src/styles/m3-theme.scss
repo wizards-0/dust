@@ -2,6 +2,7 @@
 // Proceed with caution if making changes to this file.
 
 @use 'sass:map';
+@use 'sass:color';
 @use '@angular/material' as mat;
 
 // Note: Color palettes are generated from primary: #2e5261, tertiary: #007a5c
@@ -153,61 +154,63 @@ $dark-theme: mat.define-theme((
 :root {  
   --primary: #{mat.get-theme-color($light-theme,primary)};
   --on-primary: #{mat.get-theme-color($light-theme,on-primary)};
-  --primary-hover : #{mix(mat.get-theme-color($light-theme, primary), mat.get-theme-color($light-theme, on-primary),95%)};
+  --primary-hover : #{color.mix(mat.get-theme-color($light-theme, primary), mat.get-theme-color($light-theme, on-primary),95%)};
   --primary-container: #{mat.get-theme-color($light-theme,primary-container)};
   --on-primary-container: #{mat.get-theme-color($light-theme,on-primary-container)};
   --secondary: #{mat.get-theme-color($light-theme,secondary)};
   --on-secondary: #{mat.get-theme-color($light-theme,on-secondary)};
-  --secondary-hover : #{mix(mat.get-theme-color($light-theme, secondary), mat.get-theme-color($light-theme, on-secondary),95%)};
+  --secondary-hover : #{color.mix(mat.get-theme-color($light-theme, secondary), mat.get-theme-color($light-theme, on-secondary),95%)};
   --secondary-container: #{mat.get-theme-color($light-theme,secondary-container)};
   --on-secondary-container: #{mat.get-theme-color($light-theme,on-secondary-container)};
   --tertiary: #{mat.get-theme-color($light-theme,tertiary)};
   --on-tertiary: #{mat.get-theme-color($light-theme,on-tertiary)};
-  --tertiary-hover : #{mix(mat.get-theme-color($light-theme, tertiary), mat.get-theme-color($light-theme, on-tertiary),95%)};
+  --tertiary-hover : #{color.mix(mat.get-theme-color($light-theme, tertiary), mat.get-theme-color($light-theme, on-tertiary),95%)};
   --tertiary-container: #{mat.get-theme-color($light-theme,tertiary-container)};
   --on-tertiary-container: #{mat.get-theme-color($light-theme,on-tertiary-container)};
   --error: #{mat.get-theme-color($light-theme,error)};
   --on-error: #{mat.get-theme-color($light-theme,on-error)};
-  --error-hover : #{mix(mat.get-theme-color($light-theme, error), mat.get-theme-color($light-theme, on-error),95%)};
+  --error-hover : #{color.mix(mat.get-theme-color($light-theme, error), mat.get-theme-color($light-theme, on-error),95%)};
   --error-container: #{mat.get-theme-color($light-theme,error-container)};
   --on-error-container: #{mat.get-theme-color($light-theme,on-error-container)};
   --surface: #{mat.get-theme-color($light-theme,surface)};
   --on-surface: #{mat.get-theme-color($light-theme,on-surface)};
-  --surface-hover : #{mix(mat.get-theme-color($light-theme, surface), mat.get-theme-color($light-theme, on-surface),95%)};
+  --surface-hover : #{color.mix(mat.get-theme-color($light-theme, surface), mat.get-theme-color($light-theme, on-surface),95%)};
   --surface-container: #{mat.get-theme-color($light-theme,surface-container)};
   --surface-container-high: #{mat.get-theme-color($light-theme,surface-container-high)};
   --surface-container-highest: #{mat.get-theme-color($light-theme,surface-container-highest)};
   --divider: #{mat.get-theme-color($light-theme,outline-variant)};
   --outline: #{mat.get-theme-color($light-theme,outline)};
+  --app-background: linear-gradient(160deg, #1b6b9a 0%, #80D0C7 100%)
 }
 
 .dark-theme {
   --primary: #{mat.get-theme-color($dark-theme,primary)};
   --on-primary: #{mat.get-theme-color($dark-theme,on-primary)};
-  --primary-hover : #{mix(mat.get-theme-color($dark-theme, primary), mat.get-theme-color($dark-theme, on-primary),95%)};
+  --primary-hover : #{color.mix(mat.get-theme-color($dark-theme, primary), mat.get-theme-color($dark-theme, on-primary),95%)};
   --primary-container: #{mat.get-theme-color($dark-theme,primary-container)};
   --on-primary-container: #{mat.get-theme-color($dark-theme,on-primary-container)};
   --secondary: #{mat.get-theme-color($dark-theme,secondary)};
   --on-secondary: #{mat.get-theme-color($dark-theme,on-secondary)};
-  --secondary-hover : #{mix(mat.get-theme-color($dark-theme, secondary), mat.get-theme-color($dark-theme, on-secondary),95%)};
+  --secondary-hover : #{color.mix(mat.get-theme-color($dark-theme, secondary), mat.get-theme-color($dark-theme, on-secondary),95%)};
   --secondary-container: #{mat.get-theme-color($dark-theme,secondary-container)};
   --on-secondary-container: #{mat.get-theme-color($dark-theme,on-secondary-container)};
   --tertiary: #{mat.get-theme-color($dark-theme,tertiary)};
   --on-tertiary: #{mat.get-theme-color($dark-theme,on-tertiary)};
-  --tertiary-hover : #{mix(mat.get-theme-color($dark-theme, tertiary), mat.get-theme-color($dark-theme, on-tertiary),95%)};
+  --tertiary-hover : #{color.mix(mat.get-theme-color($dark-theme, tertiary), mat.get-theme-color($dark-theme, on-tertiary),95%)};
   --tertiary-container: #{mat.get-theme-color($dark-theme,tertiary-container)};
   --on-tertiary-container: #{mat.get-theme-color($dark-theme,on-tertiary-container)};
   --error: #{mat.get-theme-color($dark-theme,error)};
   --on-error: #{mat.get-theme-color($dark-theme,on-error)};
-  --error-hover : #{mix(mat.get-theme-color($dark-theme, error), mat.get-theme-color($dark-theme, on-error),95%)};
+  --error-hover : #{color.mix(mat.get-theme-color($dark-theme, error), mat.get-theme-color($dark-theme, on-error),95%)};
   --error-container: #{mat.get-theme-color($dark-theme,error-container)};
   --on-error-container: #{mat.get-theme-color($dark-theme,on-error-container)};
   --surface: #{mat.get-theme-color($dark-theme,surface)};
   --on-surface: #{mat.get-theme-color($dark-theme,on-surface)};
-  --surface-hover : #{mix(mat.get-theme-color($dark-theme, surface), mat.get-theme-color($dark-theme, on-surface),95%)};
+  --surface-hover : #{color.mix(mat.get-theme-color($dark-theme, surface), mat.get-theme-color($dark-theme, on-surface),95%)};
   --surface-container: #{mat.get-theme-color($dark-theme,surface-container)};
   --surface-container-high: #{mat.get-theme-color($dark-theme,surface-container-high)};
   --surface-container-highest: #{mat.get-theme-color($dark-theme,surface-container-highest)};
   --divider: #{mat.get-theme-color($dark-theme,outline-variant)};
   --outline: #{mat.get-theme-color($dark-theme,outline)};
+  --app-background: linear-gradient(160deg, #375b71 0%, #5c8580 100%);
 }

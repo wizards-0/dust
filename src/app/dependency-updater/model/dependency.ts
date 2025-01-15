@@ -1,5 +1,5 @@
 import {ValueObject,hash} from 'immutable';
-import {equals,withDefault} from 'ace-common-util';
+import {equals} from 'ace-common-util';
 import {List} from 'immutable';
 import {Version} from './version';
 
@@ -18,11 +18,11 @@ export class Dependency implements ValueObject {
         isUpToDate:boolean,
         versions:List<Version>
     ) {
-        this.name = withDefault(name,'');
-        this.currentVersion = withDefault(currentVersion,'');
-        this.updateVersion = withDefault(updateVersion,'');
-        this.isUpToDate = withDefault(isUpToDate,false);
-        this.versions = withDefault(versions,List());
+        this.name = name ?? '';
+        this.currentVersion = currentVersion ?? '';
+        this.updateVersion = updateVersion ?? '';
+        this.isUpToDate = isUpToDate ?? false;
+        this.versions = versions ?? List();
     }
 
     public static  builder():DependencyBuilder {

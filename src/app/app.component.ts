@@ -15,10 +15,10 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 export class AppComponent {
   title = 'dust';
 
-  docsUrl: SafeUrl;
+  docsUrl: string;
   
-  constructor(settingsService:SettingsService,sanitizer: DomSanitizer){
-    this.docsUrl = sanitizer.bypassSecurityTrustResourceUrl('/docs/index.html?theme='+settingsService.getSettings().theme);
+  constructor(settingsService:SettingsService){
+    this.docsUrl = '/docs/index.html?theme='+settingsService.getSettings().theme;
     if(settingsService.getSettings().theme == 'dark'){
       document.body.classList.add('dark-theme');
     }

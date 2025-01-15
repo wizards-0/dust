@@ -22,6 +22,7 @@ describe('Dependency', () => {
         expect(randomValue.equals(randomValueClone)).toBeTrue();
         expect(randomValue.hashCode()).toBe(randomValueClone.hashCode());
         expect(Dependency.fromRaw({})).toEqual(Dependency.empty());
+        expect(new Dependency(undefined as any,undefined as any,undefined as any,undefined as any,undefined as any)).toEqual(Dependency.empty());
     });
 
     it('should be able to compare same type objects', () => {
