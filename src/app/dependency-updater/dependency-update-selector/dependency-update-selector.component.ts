@@ -16,18 +16,17 @@ import {MatRadioModule} from '@angular/material/radio';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'dependency-update-selector',
-  templateUrl: './dependency-update-selector.component.html',
-  styleUrl: './dependency-update-selector.component.scss',
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed,void', style({height:'0', minHeight:'0'})),
-      state('expanded', style({height:'*'}))
-    ]),
-  ],
-  standalone: true,
-  imports: [MatInputModule,MatButtonModule,ButtonComponent,MatFormFieldModule,MatIconModule,MatTableModule,MatRadioModule,AsyncPipe],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'dependency-update-selector',
+    templateUrl: './dependency-update-selector.component.html',
+    styleUrl: './dependency-update-selector.component.scss',
+    animations: [
+        trigger('detailExpand', [
+            state('collapsed,void', style({ height: '0', minHeight: '0' })),
+            state('expanded', style({ height: '*' }))
+        ]),
+    ],
+    imports: [MatInputModule, MatButtonModule, ButtonComponent, MatFormFieldModule, MatIconModule, MatTableModule, MatRadioModule, AsyncPipe],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DependencyUpdateSelectorComponent {
 

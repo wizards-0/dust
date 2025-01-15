@@ -11,13 +11,12 @@ import { Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [ReactiveFormsModule,MatTooltipModule,MatFormFieldModule,MatIconModule,MatButtonModule,MatRadioModule,MatInputModule],
-  templateUrl: './settings.component.html',
-  host: {class: 'flex basis-full w-full h-full'},
-  styleUrl: './settings.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-settings',
+    imports: [ReactiveFormsModule, MatTooltipModule, MatFormFieldModule, MatIconModule, MatButtonModule, MatRadioModule, MatInputModule],
+    templateUrl: './settings.component.html',
+    host: { class: 'flex basis-full w-full h-full' },
+    styleUrl: './settings.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent implements OnInit,OnDestroy {
 

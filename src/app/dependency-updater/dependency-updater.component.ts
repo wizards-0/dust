@@ -21,13 +21,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DependencyUpdateSelectorComponent } from './dependency-update-selector/dependency-update-selector.component';
 
 @Component({
-  selector: 'dependency-updater',
-  templateUrl: './dependency-updater.component.html',
-  host: {class: 'flex basis-full w-full h-full'},
-  standalone: true,
-  imports: [MatCard, MatInputModule, ButtonComponent, MatButtonModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
-  providers: [AlertService],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'dependency-updater',
+    templateUrl: './dependency-updater.component.html',
+    host: { class: 'flex basis-full w-full h-full' },
+    imports: [MatCard, MatInputModule, ButtonComponent, MatButtonModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
+    providers: [AlertService],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DependencyUpdaterComponent {
 
