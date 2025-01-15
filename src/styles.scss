@@ -5,7 +5,8 @@
 @use 'styles/common-styles';
 @use 'styles/scrollbar';
 
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 :root {
   @include mat.all-component-themes(m3-theme.$light-theme);
