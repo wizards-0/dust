@@ -6,10 +6,12 @@
     "start": "ng serve",
     "build": "rm -r docs/* && ng build --base-href /dust/ && cp -r dist/dust/browser/* docs && touch docs/.nojekyll && touch docs/docs/.nojekyll",
     "watch": "ng build --watch --configuration development",
-    "test": "concurrently \"node cors_proxy/server.js\" \"ng test\"",
+    "test": "concurrently \"npm run start-proxy\" \"ng test\"",
     "tailwind": "tailwind -o public/tailwind-build.css --watch",
-    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"node cors_proxy/server.js\"",
-    "coverage": "concurrently \"node cors_proxy/server.js\" \"ng test --no-watch --code-coverage\""
+    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"npm run start-proxy\"",
+    "coverage": "concurrently \"npm run start-doc-generator\" \"npm run start-proxy\" \"ng test --no-watch --code-coverage\"",
+    "start-proxy": "node cors_proxy/server.js",
+    "start-doc-generator": "node doc-generator/app.js"
   },
   "private": true,
   "dependencies": {
@@ -49,6 +51,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
     "typescript": "~5.5.2"
   }
 }

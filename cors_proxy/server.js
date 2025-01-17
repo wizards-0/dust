@@ -1,7 +1,7 @@
-const express = require('express')
-const https = require('node:https')
-const app = express()
-const port = 3040
+const express = require('express');
+const https = require('node:https');
+const app = express();
+const port = 3040;
 
 app.get('/get', (req, res) => {
   let originalUrl = req.query.url;

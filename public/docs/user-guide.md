@@ -1,5 +1,4 @@
 ## Quick Start
-
 - Copy **package.json** or **build.gradle** or **settings.gradle** to clipboard from your source
 - Paste it in the appropriate text box and click on check
 - Click on expand arrow in right most column, to see versions for that dependency
@@ -48,9 +47,12 @@ Dependency List has following columns which are common to Node & Gradle
 | Updated           | Shows a check mark if a version was selected for that dependency to track progress |
 | Details           | Each row has an expand icon, which can be clicked to see version details |
 
+---
 
 ### Dependency Versions
-Version detail grid, displays 10 most relevant versions for that dependency. How the relevant versions are picked is detailed in [user flows](/user-flows). Dependency versions have slight differences between build systems, as their repository API provide different attributes.
+Version detail grid, displays 10 most relevant versions for that dependency. How the relevant versions are picked is detailed in **[user flows](/user-flows)**. Dependency versions have slight differences between build systems, as their repository API provide different attributes.
+
+---
 
 #### Node
 
@@ -61,6 +63,8 @@ Version detail grid, displays 10 most relevant versions for that dependency. How
 | Tags              | Tags associated with this version                                 |
 | Publish Date      | Date when this version was published                              |
 
+---
+
 #### Gradle
 | Column Name           | Purpose                                                           |
 |-----------------------|-------------------------------------------------------------------|
@@ -69,29 +73,40 @@ Version detail grid, displays 10 most relevant versions for that dependency. How
 | Vulnerability Count   | Count of known vulnerabilities in OSS scan                        |
 | Publish Date          | Date when this version was published                              |
 
+---
+
 #### Version Selection
 After expanding dependency, a sub grid with relevant versions will be displayed. Select the radio button with desired version to initiate selection.
 This version will be populated in the text box above grid, this is done to provide option for manual edits if required.
-When selecting a new version, If the existing version had identifiable [prefix*](/user-guide?id=version-prefix), it is automatically added to the new version. This is done as it is the most common way to describe versions in node. Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
+When selecting a new version, If the existing version had identifiable **[prefix*](/user-guide?id=version-prefix)**, it is automatically added to the new version. This is done as it is the most common way to describe versions in node. Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
 
 Text Box can also be used to specify version for local dependencies manually. Click on select button after confirming the version is in text box, to complete version selection.
 Sub grid will auto collapse on clicking select to speed up the process. Dependency will have update version populated in main grid 
 and it will be marked with green check to track progress.
 
+---
+
 #### *Version Prefix
 If version is in format ```[symbols][wordChars].[wordChars].[wordChars]```, then symbols at the beginning are treated as prefix
+
+---
 
 ### Output
 After making all the changes, click on copy button to copy updated build file to clipboard. Updated build file will have new versions for dependencies which were updated.
 While no changes will be made to other part of build file. This can now be pasted to the build file in original source code.
 
+---
+
 ## Settings
 Settings allows you to specify color scheme, and CORS proxy Url.
 
-#### Proxy Url
+---
+
+### Proxy Url
 API for gradle plugin dependencies does not allow CORS calls. Hence a CORS proxy is needed to make the API call. Following are the options to provide CORS proxy URL
-- Preferred option is to clone this repo from github, and start the local server with 'npm run dev'. More details for local setup in contributors guide.
-This will start a rudimentary CORS proxy server along with the dev server. After starting local server, local CORS proxy URL "http://localhost:3040/get?url=" can be used.
+- Preferred option is to run CORS proxy locally. See **[Setup](/dev-guide?id=setup)** for details. After local server is up, ```http://localhost:3040/get?url=``` can be used as proxy URL.
 - If the first method is not working for any reason, any other open source proxy can be deployed locally and its URL can be used. It should work with format proxyUrl+originalUrl.  
 Example "https://github.com/Rob--W/cors-anywhere"
-- Least preferred option is to use a public proxy, like 'https://api.allorigins.win/get?url='. This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.
+- Least preferred option is to use a public proxy, like ```https://api.allorigins.win/get?url=```. This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.
+
+---

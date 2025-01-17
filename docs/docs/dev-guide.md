@@ -2,11 +2,12 @@
 
 ### Local
 - Clone repo & switch to latest node version using node version manager
-- run "npm install" in base directory to download all dependencies
-- run "npm run dev" to start dev server, local CORS proxy
+- run ```npm install``` in base directory to download all dependencies
+- run ```npm run dev``` to start dev server, local CORS proxy
 
 ### Docker
-- run ```docker compose watch``` from base directory. It will build image, start dev server. It watches for file changes, it will reload dev server on code changes.
+- run ```docker compose watch``` from base directory. It will build image, start dev server, local CORS proxy.  
+It watches for file changes, it will reload dev server on code changes.
 It will rebuild image for package.json changes
 - To shutdown dev server, run ```shutdown.sh``` for executing ```docker compose down``` and ```docker image prune -f```. Image prune is useful as dangling images might be created due to package.json changes
 
@@ -26,5 +27,5 @@ It will rebuild image for package.json changes
 
 ## PR Guidelines
 - After changes, code should still have 100% coverage in all categories (line, branch, functions, statements)
-- If changes are made to doc tests, relevant docs also need to be updated & re-generated
-- PR for new build should also be created in build branch
+- If changes are made to doc tests, relevant doc section also need to be updated. Docs will be re-generated during coverage check
+- Updated build has to be checked in to docs folder. It can be done by running ```npm run build```
