@@ -104,7 +104,7 @@ Settings allows you to specify color scheme, and CORS proxy Url.
 
 ### Proxy Url
 API for gradle plugin dependencies does not allow CORS calls. Hence a CORS proxy is needed to make the API call. Following are the options to provide CORS proxy URL
-- Preferred option is to run CORS proxy locally. See **[Setup](/dev-guide?id=setup)** for details. After local server is up, ```http://localhost:3040/get?url=``` can be used as proxy URL.
+- Preferred option is to run CORS proxy locally. See **[setup](/dev-guide?id=setup)** for details. After local server is up, ```http://localhost:3040/get?url=``` can be used as proxy URL.
 - If the first method is not working for any reason, any other open source proxy can be deployed locally and its URL can be used. It should work with format proxyUrl+originalUrl.  
 Example "https://github.com/Rob--W/cors-anywhere"
 - Least preferred option is to use a public proxy, like ```https://api.allorigins.win/get?url=```. This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.

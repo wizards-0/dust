@@ -125,13 +125,9 @@ export class NodeProcessor {
   }
 
   transfromDependencyListToMap(dependencyList: List<Dependency>) {
-
-    return Map(dependencyList.map(dep => {
-      return [
-        dep.name,
-        dep.updateVersion ? dep.updateVersion : dep.currentVersion
-      ]
-    }));
+    let depsMap:any = {};
+    dependencyList.forEach(dep => depsMap[dep.name] = dep.updateVersion ? dep.updateVersion : dep.currentVersion);
+    return depsMap;
   }
 
   withLatestVersion(top10Downloads: List<Version>, latestVersionString: string, allDownloads: List<Version>): List<Version> {
