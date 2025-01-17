@@ -9,8 +9,9 @@ export class SettingsService {
     private settings:Settings;
     
     constructor(){
+        let theme = window.matchMedia('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light';
         let settingsJson = localStorage.getItem('dustSettings');
-        let settings:Settings =  settingsJson ? JSON.parse(settingsJson) : new Settings();
+        let settings:Settings =  settingsJson ? JSON.parse(settingsJson) : new Settings(theme,undefined);
         this.settings = settings;
     }
 

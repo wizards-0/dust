@@ -1,4 +1,3 @@
-import { MockedObjects } from "../../test/mocks/mocked-objects";
 import { Settings } from "./settings";
 import { SettingsService } from "./settings.service";
 
@@ -9,8 +8,12 @@ describe('SettingsService', () => {
     it('should be able to initialize settings from empty local storage', () => {
         spyOn(localStorage,'getItem')
             .and.returnValue(undefined as any);
+        spyOn(window,'matchMedia')
+            .and.returnValues(undefined as any, {matches:true} as any);            
         settingsService = new SettingsService();
         expect(settingsService.getSettings()).toEqual(new Settings());
+        settingsService = new SettingsService();
+        expect(settingsService.getSettings()).toEqual(new Settings('dark',undefined));
     });
 
     it('should be able to fetch previously saved settings from local storage', () => {

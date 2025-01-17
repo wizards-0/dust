@@ -121,7 +121,7 @@ export class NodeProcessor {
 
     this.packageJson['dependencies'] = dependencies;
     this.packageJson['devDependencies'] = devDependencies;
-    return JSON.stringify(this.packageJson);
+    return JSON.stringify(this.packageJson,null,2);
   }
 
   transfromDependencyListToMap(dependencyList: List<Dependency>) {

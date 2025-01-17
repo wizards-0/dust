@@ -4,6 +4,7 @@ import { MatCard } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from './settings/settings.service';
+import { Settings } from './settings/settings';
 
 @Component({
     selector: 'app-root',
@@ -15,12 +16,10 @@ import { SettingsService } from './settings/settings.service';
 export class AppComponent {
   title = 'dust';
 
-  constructor(private readonly settingsService:SettingsService){
-
+  constructor(private readonly settingsService:SettingsService){    
     if(settingsService.getSettings().theme == 'dark'){
       document.body.classList.add('dark-theme');
     }
-
     if(settingsService.getSettings().corsProxy) {
       console.info(`Cors Proxy : ${settingsService.getSettings().corsProxy}`);
     } else {

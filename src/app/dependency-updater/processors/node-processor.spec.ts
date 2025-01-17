@@ -272,7 +272,7 @@ describe('NodeProcessor', () => {
       "dependencies":{},
       "devDependencies":{}
     };
-    expect(result).toEqual(JSON.stringify(expectedPackageJson));
+    expect(result).toEqual(JSON.stringify(expectedPackageJson,null,2));
 
 
     let versions = List([
@@ -304,6 +304,6 @@ describe('NodeProcessor', () => {
         "webpack":"11.4.3"
       }
     };
-    expect(result).toEqual(JSON.stringify(expectedPackageJson));
+    expect(result).toEqual(JSON.stringify(expectedPackageJson,null,2));
   });
 });

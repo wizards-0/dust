@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "rm -r docs && ng build --base-href /dust/ && mkdir docs && cp -r dist/dust/browser/* docs && touch docs/.nojekyll && touch docs/docs/.nojekyll",
+    "build": "rm -r docs/* && ng build --base-href /dust/ && cp -r dist/dust/browser/* docs && touch docs/.nojekyll && touch docs/docs/.nojekyll",
     "watch": "ng build --watch --configuration development",
     "test": "concurrently \"node cors_proxy/server.js\" \"ng test\"",
     "tailwind": "tailwind -o public/tailwind-build.css --watch",

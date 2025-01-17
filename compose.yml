@@ -1,0 +1,16 @@
+name: dust
+
+services:
+  dev-server:
+    build:
+      context: ./
+    ports:
+      - 4200:4200
+      - 3040:3040
+    develop:
+      watch:
+        - path: ./src
+          action: sync
+          target: /workspace/src
+        - path: ./package.json
+          action: rebuild
