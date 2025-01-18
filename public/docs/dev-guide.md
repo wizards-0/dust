@@ -1,7 +1,7 @@
 ## Setup
 
 ### Local
-- Clone repo & switch to latest node version using node version manager
+- Clone repo & switch to node lts version using node version manager
 - run ```npm install``` in base directory to download all dependencies
 - run ```npm run dev``` to start dev server, local CORS proxy
 
@@ -18,6 +18,7 @@ It will rebuild image for package.json changes
 - Tailwind for styling instead of angular scss. Angular scss is still used when overriding styles is needed
 - Luxon lib for handling dates
 - immutable js for lists, maps
+- docsify for documentation website
 
 ### Code guidelines
 - All components must be standalone

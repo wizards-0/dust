@@ -20,9 +20,9 @@ For exceptions version can be provided manually
             - Publish Date
     - After parsing & fetching details. If dependency lists are empty, then Invalid build file error is shown to user.
 7. User, expands dependency to select a new version
-8. A sub grid, with version for that dependency is presented. If current version excluding [prefix*](/user-guide?id=version-prefix) matches any version in grid, it is pre-selected.
+8. A sub grid, with version for that dependency is presented. If current version excluding **[prefix*](/user-guide?id=version-prefix)** matches any version in grid, it is pre-selected.
 Current Version is also populated in version selection text box.
-9. User selects a new version from the sub gird, See [Version Selection*](/user-guide?id=version-selection) for details
+9. User selects a new version from the sub gird, See **[Version Selection*](/user-guide?id=version-selection)** for details
 10. User performs steps 7-9 to for all dependencies that needs update.
 11. User clicks on Copy in build file section, to copy updated build file to clipboard. Updated build file is pasted back to source code.
 
@@ -54,4 +54,4 @@ use that specific version. Since it serves a similar purpose it is mapped to dow
 vulnerability count. Hence the reason for difference in columns
 4. For plugins data is fetched from "https://plugins.gradle.org/m2/${pluginPath}/maven-metadata.xml". Unfortunately this API provides very limited data, it only has list of version
 and publish time for latest version, So relevant versions are just calculated based on alphabetical sorting of versions. Also this API does not support CORS, hence a CORS proxy
-is required for this API to work. See [Proxy Url*](/user-guide?id=proxy-url) for more details
+is required for this API to work. See **[Proxy Url*](/user-guide?id=proxy-url)** for more details

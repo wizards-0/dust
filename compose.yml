@@ -14,3 +14,6 @@ services:
           target: /workspace/src
         - path: ./package.json
           action: rebuild
+        - path: ./public
+          action: sync
+          target: /workspace/public
