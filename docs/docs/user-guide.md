@@ -5,6 +5,8 @@
 - Select the desired version for each dependency from version detail grid
 - Click on copy, paste updated file back to source
 
+---
+
 ## Detailed Guide
 
 ### Build File Input

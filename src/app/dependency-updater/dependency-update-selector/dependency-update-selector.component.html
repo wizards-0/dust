@@ -30,8 +30,8 @@
 
             <ng-container matColumnDef="details">
                 <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
-                <td mat-cell *matCellDef="let element">
-                    <button mat-icon-button aria-label="expand row" (click)="selectDependency(element,$event)">
+                <td mat-cell *matCellDef="let element;let depIndex = dataIndex;">
+                    <button id="{{id}}-detailsButton-{{depIndex}}" mat-icon-button aria-label="expand row" (click)="selectDependency(element,$event)">
                         @if (element == currentDependency) {
                         <mat-icon>keyboard_arrow_up</mat-icon>
                         } @else {
@@ -51,7 +51,7 @@
                                 <input matInput [value]="updateVersionTemp | async"
                                     (change)="updateVersionTemp.next( $any($event.target).value); $event.stopPropagation()">
                             </mat-form-field>
-                            <ace-button class="ml-2 mb-5" color="primary"
+                            <ace-button class="ml-2 mb-5" color="primary" id="{{id}}-versionSelectButton-{{rowIndex}}"
                                 (click)="updateDependencyVersion(rowIndex)">Select</ace-button>
                         </div>
                         @if(!element.versions.isEmpty()){
@@ -62,8 +62,8 @@
 
                                 <ng-container matColumnDef="select">
                                     <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
-                                    <td mat-cell *matCellDef="let versionElement">
-                                        <mat-radio-button [name]="element.name" color="primary"
+                                    <td mat-cell *matCellDef="let versionElement;let verIndex = index;">
+                                        <mat-radio-button [name]="element.name" color="primary" id="{{id}}-versionRadio-{{rowIndex}}-{{verIndex}}"
                                             [checked]="matchVersion(element,versionElement)"
                                             (change)="updateVersionTemp.next(getVersionPrefix(element.currentVersion) + versionElement.version)">
                                         </mat-radio-button>

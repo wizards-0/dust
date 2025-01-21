@@ -17,18 +17,22 @@ describe('DependencyUpdateSelectorComponent', () => {
   beforeEach(() => {
     mocks = new MockedObjects();
     component = new DependencyUpdateSelectorComponent();
+    component.ngOnInit();
   });
 
   it('should assign columns based on build type', () => {
     component.buildType = 'node';
+    component.ngOnInit();
     expect(component.downloadColumnLabel).toBe( 'Downloads (7 days)' );
     expect(component.versionDetailColumns).toEqual( ['select','version', 'downloads', 'tag', 'publishDate'] );
 
     component.buildType = 'gradle';
+    component.ngOnInit();
     expect(component.downloadColumnLabel).toBe( 'Depended On' );
     expect(component.versionDetailColumns).toEqual( ['select','version', 'downloads', 'vulnerabilityCount', 'publishDate'] );
 
     component.buildType = 'someRandomInvalidString';
+    component.ngOnInit();
     expect(component.downloadColumnLabel).toBe( 'Downloads' );
     expect(component.versionDetailColumns).toEqual( ['select','version', 'downloads', 'publishDate'] );
   });
@@ -39,6 +43,7 @@ describe('DependencyUpdateSelectorComponent', () => {
       Dependency.builder().name('d2').build()
     ];
     component.dataSource = new BehaviorSubject(List(deps));
+    component.ngOnInit();
     component.depsArr$.pipe(take(1)).subscribe(depsArr => {
       expect(depsArr).toEqual(deps);
       done();
@@ -53,11 +58,11 @@ describe('DependencyUpdateSelectorComponent', () => {
     component.dataSource = new BehaviorSubject(List(deps));
     component.updateVersionTemp.next('v2');
     component.updateDependencyVersion(0);
-    let dep = component._dataSource.value.get(0,Dependency.empty());
+    let dep = component.dataSource.value.get(0,Dependency.empty());
     expect(dep.updateVersion).toBe('v2');
     expect(dep.isUpToDate).toBeTrue();
 
-    expect(component._dataSource.value.get(1)?.updateVersion).toBeFalsy();
+    expect(component.dataSource.value.get(1)?.updateVersion).toBeFalsy();
   });
 
   it('should be able to identify simple prefix for node semver, return empty for others', () => {

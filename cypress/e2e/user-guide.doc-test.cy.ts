@@ -1,11 +1,40 @@
 import { runDocTests } from "./doc-test-runner";
 
-export const userGuideDocTests = {
-    path: '/user-guide.md',
-    tests: [
-        {
-            title: 'Quick start doc test',
-            doc: `## Quick Start
+let validPackageJson = {
+  "name": "dust",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --host 0.0.0.0",
+    "build": "rm -r docs/* && ng build --base-href /dust/ && cp -r dist/dust/browser/* docs && touch docs/.nojekyll && touch docs/docs/.nojekyll",
+    "watch": "ng build --watch --configuration development",
+    "test": "concurrently \"npm run start-proxy\" \"ng test\"",
+    "tailwind": "tailwind -o public/tailwind-build.css --watch",
+    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"npm run start-proxy\"",
+    "coverage": "concurrently \"npm run start-doc-generator\" \"npm run start-proxy\" \"ng test --no-watch --code-coverage\"",
+    "start-proxy": "node cors_proxy/server.js",
+    "start-doc-generator": "node doc-generator/app.js",
+    "cy:open": "npx cypress open --config-file cypress.config.ts"
+  },
+  "private": true,
+  "dependencies": {
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.15.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "~5.5.2"
+  }
+}
+
+const userGuideDocTests = {
+  path: '/user-guide.md',
+  tests: [
+    {
+      title: 'Quick start doc test',
+      doc: `## Quick Start
 - Copy **package.json** or **build.gradle** or **settings.gradle** to clipboard from your source
 - Paste it in the appropriate text box and click on check
 - Click on expand arrow in right most column, to see versions for that dependency
@@ -13,28 +42,46 @@ export const userGuideDocTests = {
 - Click on copy, paste updated file back to source
 
 ---`,
-            test: () => {
-                console.log('User Guide - Quick Start')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Build file input doc test',
-            doc: `
+      test: () => {
+        cy.visit('http://localhost:4200');
+        cy.contains('D . U . S . T . ');
+        let packageJsonInput = JSON.stringify(validPackageJson);
+        cy.get('textarea#packageJsonInput').type(packageJsonInput, { parseSpecialCharSequences: false, delay: 0 });
+        cy.get('ace-button#checkPackageJson').click();
+
+        cy.get('button#Dependencies-detailsButton-1', { timeout: 10000 }).click();
+        cy.get('mat-radio-button#Dependencies-versionRadio-1-1').click();
+        cy.get('ace-button#Dependencies-versionSelectButton-1').click();
+
+        cy.get('button#DevDependencies-detailsButton-2').click();
+        cy.get('mat-radio-button#DevDependencies-versionRadio-2-0').click();
+        cy.get('ace-button#DevDependencies-versionSelectButton-2').click();
+
+        cy.get('ace-button#copyPackageJsonButton').click();
+
+        cy.window().its('navigator.clipboard')
+          .then((clip) => clip.readText())
+          .then((jsonString) => JSON.parse(jsonString))
+          .should('have.nested.property', 'dependencies.tslib');
+      }
+    },
+    {
+      title: 'Build file input doc test',
+      doc: `
 ## Detailed Guide
 
 ### Build File Input
 Currently, this tool supports Node & Gradle build files
 
 ---`,
-            test: () => {
-                console.log('User Guide - Build File Input')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Build file Node doc test',
-            doc: `
+      test: () => {
+        console.log('User Guide - Build File Input')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Build file Node doc test',
+      doc: `
 #### Node
 It is able to parse node's package.json for getting dependencies. Sections dependencies & dev dependencies are parsed. Others like peer dependencies are ignored.
 They are not mandatory, but at least one of them should be present. 
@@ -45,14 +92,14 @@ The only validation is that string itself is a valid json. So if in json, depend
 For local packages that are not available in the npmjs registry, they will still be listed in the dependency grid, but will have an empty version detail grid.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Build File Node')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Build file Gradle doc test',
-            doc: `
+      test: () => {
+        console.log('User Guide - Build File Node')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Build file Gradle doc test',
+      doc: `
 #### Gradle
 For gradle, you can paste build.gradle or settings.gradle. It is able to parse dev dependencies (api, impl, test, etc) and plugin dependencies for which you have to specify version.
 
@@ -63,14 +110,14 @@ In gradle there are lot of ways to write dependency version. But only two format
 All the dependencies / plugins which are not in this format will be ignored. And dependencies in above format will be processed.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Build File Gradle')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency List',
-            doc: `
+      test: () => {
+        console.log('User Guide - Build File Gradle')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Dependency List',
+      doc: `
 ### Dependency List
 After the build file is parsed; Dependency details will be fetched from repository APIs. Node & Gradle both have two lists. Node has Dependencies & Dev Dependencies. Gradle has Dependencies & Plugin Dependencies. At least one list will be present in each build system.
 
@@ -85,26 +132,26 @@ Dependency List has following columns which are common to Node & Gradle
 | Details           | Each row has an expand icon, which can be clicked to see version details |
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency List')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency Versions',
-            doc: `
+      test: () => {
+        console.log('User Guide - Dependency List')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Dependency Versions',
+      doc: `
 ### Dependency Versions
 Version detail grid, displays 10 most relevant versions for that dependency. How the relevant versions are picked is detailed in **[user flows](/user-flows)**. Dependency versions have slight differences between build systems, as their repository API provide different attributes.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Versions')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency Versions Node',
-            doc: `
+      test: () => {
+        console.log('User Guide - Dependency Versions')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Dependency Versions Node',
+      doc: `
 #### Node
 
 | Column Name       | Purpose                                                           |
@@ -115,14 +162,14 @@ Version detail grid, displays 10 most relevant versions for that dependency. How
 | Publish Date      | Date when this version was published                              |
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Versions Node')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency Versions Gradle',
-            doc: `
+      test: () => {
+        console.log('User Guide - Dependency Versions Node')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Dependency Versions Gradle',
+      doc: `
 #### Gradle
 | Column Name           | Purpose                                                           |
 |-----------------------|-------------------------------------------------------------------|
@@ -132,14 +179,14 @@ Version detail grid, displays 10 most relevant versions for that dependency. How
 | Publish Date          | Date when this version was published                              |
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Versions Gradle')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency Version Selection',
-            doc: `
+      test: () => {
+        console.log('User Guide - Dependency Versions Gradle')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Dependency Version Selection',
+      doc: `
 #### Version Selection
 After expanding dependency, a sub grid with relevant versions will be displayed. Select the radio button with desired version to initiate selection.
 This version will be populated in the text box above grid, this is done to provide option for manual edits if required.
@@ -150,51 +197,51 @@ Sub grid will auto collapse on clicking select to speed up the process. Dependen
 and it will be marked with green check to track progress.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Version Selection')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency Version Prefix',
-            doc: `
+      test: () => {
+        console.log('User Guide - Dependency Version Selection')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Dependency Version Prefix',
+      doc: `
 #### *Version Prefix
 If version is in format \`\`\`[symbols][wordChars].[wordChars].[wordChars]\`\`\`, then symbols at the beginning are treated as prefix
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Version Prefix')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Output',
-            doc: `
+      test: () => {
+        console.log('User Guide - Dependency Version Prefix')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Output',
+      doc: `
 ### Output
 After making all the changes, click on copy button to copy updated build file to clipboard. Updated build file will have new versions for dependencies which were updated.
 While no changes will be made to other part of build file. This can now be pasted to the build file in original source code.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Output')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Settings',
-            doc: `
+      test: () => {
+        console.log('User Guide - Output')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Settings',
+      doc: `
 ## Settings
 Settings allows you to specify color scheme, and CORS proxy Url.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Settings')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Settings Proxy Url',
-            doc: `
+      test: () => {
+        console.log('User Guide - Settings')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    },
+    {
+      title: 'Settings Proxy Url',
+      doc: `
 ### Proxy Url
 API for gradle plugin dependencies does not allow CORS calls. Hence a CORS proxy is needed to make the API call. Following are the options to provide CORS proxy URL
 - Preferred option is to run CORS proxy locally. See **[setup](/dev-guide?id=setup)** for details. After local server is up, \`\`\`http://localhost:3040/get?url=\`\`\` can be used as proxy URL.
@@ -203,12 +250,12 @@ Example "https://github.com/Rob--W/cors-anywhere"
 - Least preferred option is to use a public proxy, like \`\`\`https://api.allorigins.win/get?url=\`\`\`. This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Settings Proxy Url')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        }
-    ]
+      test: () => {
+        console.log('User Guide - Settings Proxy Url')
+        expect(userGuideDocTests.tests).to.be.not.empty;
+      }
+    }
+  ]
 }
 
 runDocTests(userGuideDocTests);

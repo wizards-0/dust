@@ -7,9 +7,9 @@
                 <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">Node Package Json</mat-label>
                 <mat-form-field class="flex" id="packageJsonInputField" appearance="outline">
                     <mat-label>package.json content</mat-label>
-                    <textarea matInput [formControl]="packageJsonInput" class="flex overflow-hidden"></textarea>
+                    <textarea matInput id="packageJsonInput" [formControl]="packageJsonInput" class="flex overflow-hidden"></textarea>
                 </mat-form-field>
-                <ace-button class="mb-5 ml-2" color="primary" (click)="processPackageJson()">Check</ace-button>
+                <ace-button id="checkPackageJson" class="mb-5 ml-2" color="primary" (click)="processPackageJson()">Check</ace-button>
             </div>
             <div id="buildGradleImportSection" class="flex flex-row items-center px-4 pt-4">
                 <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">Gradle build file (build.gradle / settings.gradle)</mat-label>
@@ -17,19 +17,19 @@
                     <mat-label>build.gradle / settings.gradle content</mat-label>
                     <textarea matInput [formControl]="gradleFileInput" class="flex overflow-hidden"></textarea>
                 </mat-form-field>
-                <ace-button class="mb-5 ml-2" color="primary" (click)="processBuildGradle()">Check</ace-button>
+                <ace-button id="checkGradleBuildFile" class="mb-5 ml-2" color="primary" (click)="processBuildGradle()">Check</ace-button>
             </div>
            
             @if(packageJsonParsed && parseSucceeded) {
             <div id="packageJsonDownloadSection" class="flex flex-row items-center top-divider p-4">
                 <mat-label class="flex flex-grow text-base text-on-surface items-center">Copy updated package json to clipboard</mat-label>
-                <ace-button class="flex" color="primary" (click)="copyPackageJson()">Copy</ace-button>
+                <ace-button id="copyPackageJsonButton" class="flex" color="primary" (click)="copyPackageJson()">Copy</ace-button>
             </div>
             }
             @if(gradleFileParsed && parseSucceeded) {
             <div id="buildGradleDownloadSection" class="flex flex-row items-center top-divider p-4">
                 <mat-label class="flex flex-grow text-base text-on-surface items-center">Copy updated gradle file to clipboard</mat-label>
-                <ace-button class="flex" color="primary" (click)="copyGradleFile()">Copy</ace-button>
+                <ace-button id="copyGradleBuildFileButton" class="flex" color="primary" (click)="copyGradleFile()">Copy</ace-button>
             </div>
             }
         </div>

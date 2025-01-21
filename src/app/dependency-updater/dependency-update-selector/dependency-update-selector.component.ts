@@ -1,5 +1,5 @@
 import { state, style, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { DateTime } from 'luxon';
 import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { Dependency } from '../model/dependency';
@@ -28,38 +28,35 @@ import { AsyncPipe } from '@angular/common';
     imports: [MatInputModule, MatButtonModule, ButtonComponent, MatFormFieldModule, MatIconModule, MatTableModule, MatRadioModule, AsyncPipe],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DependencyUpdateSelectorComponent {
+export class DependencyUpdateSelectorComponent implements OnInit {
 
-  _buildType:string = '';
-  //@Output, will hold the same reference of behavior subject as parent on init. Any emits on this datasource will be received by parent
-  _dataSource:BehaviorSubject<List<Dependency>> = new BehaviorSubject(List());
+    //@Output, will hold the same reference of behavior subject as parent on init. Any emits on this datasource will be received by parent
   depsArr$:Observable<Dependency[]> = of([]);
+  id:string='';
   constructor(){
   }
 
   @Input()
-  set buildType(buildType:string){
-    this._buildType = buildType
-    if(buildType == 'node'){
+  buildType:string = '';
+  @Input()
+  label:string = '';
+  @Input()
+  dataSource:BehaviorSubject<List<Dependency>> = new BehaviorSubject(List());
+  
+  ngOnInit(): void {
+    if(this.buildType == 'node'){
       this.downloadColumnLabel = 'Downloads (7 days)';
       this.versionDetailColumns = ['select','version', 'downloads', 'tag', 'publishDate'];
-    } else if(buildType == 'gradle') {
+    } else if(this.buildType == 'gradle') {
       this.downloadColumnLabel = 'Depended On';
       this.versionDetailColumns = ['select','version', 'downloads', 'vulnerabilityCount', 'publishDate'];
     } else {
       this.downloadColumnLabel = 'Downloads';
       this.versionDetailColumns = ['select','version', 'downloads', 'publishDate'];
     }
+    this.depsArr$ = this.dataSource.pipe(map(deps => deps.toArray()));
+    this.id=this.label.replaceAll(' ','');
   }
-
-  @Input()
-  label:string = '';
-  @Input()
-  set dataSource(dataSource:BehaviorSubject<List<Dependency>>){
-    this._dataSource = dataSource;
-    this.depsArr$ = this._dataSource.pipe(map(deps => deps.toArray()))
-  } 
-  
 
   updateVersionTemp = new BehaviorSubject('');
   downloadColumnLabel:string = ''
@@ -69,13 +66,13 @@ export class DependencyUpdateSelectorComponent {
   currentDependency:Dependency | null = null;
 
   updateDependencyVersion(rowIndex:number) {
-    let dependencies = this._dataSource.value;
+    let dependencies = this.dataSource.value;
     let dependencyToUpdate = dependencies.get(rowIndex,Dependency.empty())
     .with(dep => {
       dep.isUpToDate(true);
       dep.updateVersion(this.updateVersionTemp.value);
     });    
-    this._dataSource.next(dependencies.set(rowIndex,dependencyToUpdate));
+    this.dataSource.next(dependencies.set(rowIndex,dependencyToUpdate));
   }
 
   getVersionPrefix(version:string):string {
