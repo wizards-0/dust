@@ -1,6 +1,21 @@
+import { BrowserContext, Page, expect } from "@playwright/test";
 import { runDocTests } from "./doc-test-runner";
 
-export const userGuideDocTests = {
+
+let validPackageJson = {    
+    "dependencies": {
+        "rxjs": "~7.8.0",
+        "tslib": "^2.3.0",
+        "zone.js": "^0.15.0"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.17",
+        "tsx": "^4.19.2",
+        "typescript": "~5.5.2"
+    }
+}
+
+const userGuideDocTests = {
     path: '/user-guide.md',
     tests: [
         {
@@ -13,9 +28,29 @@ export const userGuideDocTests = {
 - Click on copy, paste updated file back to source
 
 ---`,
-            test: () => {
-                console.log('User Guide - Quick Start')
-                expect(userGuideDocTests.tests).toBeTruthy();
+            test: async (page: Page, context: BrowserContext) => {
+                await page.goto('/');
+                let packageJsonInput = JSON.stringify(validPackageJson);
+
+                await page.locator('textarea#packageJsonInput').fill(packageJsonInput);
+                await page.locator('ace-button#checkPackageJson').click();
+
+                await expect(page.locator('button#Dependencies-detailsButton-1')).toBeVisible({ timeout: 20000 });
+                await page.locator('button#Dependencies-detailsButton-1').click();
+                await page.locator('mat-radio-button#Dependencies-versionRadio-1-1').click();
+                await page.locator('ace-button#Dependencies-versionSelectButton-1').click();
+
+                await page.locator('button#DevDependencies-detailsButton-2').click();
+                await page.locator('mat-radio-button#DevDependencies-versionRadio-2-0').click();
+                await page.locator('ace-button#DevDependencies-versionSelectButton-2').click();
+
+                await page.locator('ace-button#copyPackageJsonButton').click();
+
+                await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+                const handle = await page.evaluateHandle(() => navigator.clipboard.readText());
+                const clipboardContent = await handle.jsonValue();
+                const resultPackageJson = JSON.parse(clipboardContent);
+                expect(resultPackageJson.dependencies.tslib).toBeTruthy();
             }
         },
         {

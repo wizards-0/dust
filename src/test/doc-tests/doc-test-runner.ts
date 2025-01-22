@@ -1,3 +1,31 @@
+import { test } from '@playwright/test';
+import * as fs from 'node:fs';
+
+function generateDoc(testGroup: any) {
+    const path = ('./public/docs/' + testGroup.path).replace('//', '/');
+    const content = testGroup.tests.map((test: any) => test.doc).join('\n')
+
+    try {
+        fs.writeFileSync(path, content);
+        // file written successfully
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+export function runDocTests(testGroup: any) {
+    test.describe(testGroup.path, () => {
+        test.afterAll(() => {
+            generateDoc(testGroup);
+        });
+        testGroup.tests.forEach((docTest: any) => {
+            test(docTest.title, async ({ page, context }) => {
+                await docTest.test(page,context);
+            });
+        });
+    });
+}
+
 export function getDocGenCaller(testGroup: any) {
     return (done: any) => {
         let docRequest = {
@@ -16,13 +44,4 @@ export function getDocGenCaller(testGroup: any) {
         };
         xhr.send(body);
     };
-}
-
-export function runDocTests(testGroup: any) {
-    describe(testGroup.path, () => {
-        afterAll(getDocGenCaller(testGroup));
-        testGroup.tests.forEach((test: any) => {
-            it(test.title, test.test);
-        });
-    });
 }
