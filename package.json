@@ -4,16 +4,15 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0",
+    "serve:test": "ng serve --host 0.0.0.0 --port 4201 --configuration testing",
     "build": "rm -r docs/* && ng build --base-href /dust/ && cp -r dist/dust/browser/* docs && touch docs/.nojekyll && touch docs/docs/.nojekyll",
     "watch": "ng build --watch --configuration development",
     "test": "concurrently \"npm run start-proxy\" \"ng test\"",
+    "doc-test" : "playwright test",
     "tailwind": "tailwind -o public/tailwind-build.css --watch",
-    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"npm run start-proxy\" \"npm run start-doc-generator\" ",
-    "coverage": "concurrently \"npm run start-doc-generator\" \"npm run start-proxy\" \"ng test --no-watch --code-coverage\"",
-    "start-proxy": "node cors_proxy/server.js",
-    "start-doc-generator": "node doc-generator/app.js",
-    "cy:open": "cypress open --config-file cypress.config.ts",
-    "cy:run": "cypress run --config-file cypress.config.ts"
+    "dev": "concurrently \"npm start\" \"npm run serve:test\" \"npm run tailwind\" \"npm run start-proxy\"",
+    "coverage": "concurrently \"npm run start-proxy\" \"ng test --no-watch --code-coverage\"",
+    "start-proxy": "node cors_proxy/server.js"
   },
   "private": true,
   "dependencies": {

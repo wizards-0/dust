@@ -2,7 +2,7 @@
     <div id="packageJsonDependenciesSection"
         class="flex flex-row bg-primary text-on-primary justify-center text-lg p-2">{{label}}</div>
     <div id="dependencyList" class="dependency-list">
-        <table mat-table [dataSource]="depsArr$" multiTemplateDataRows class="outer-table">
+        <table id="{{id}}-dependencyListTable" mat-table [dataSource]="depsArr$" multiTemplateDataRows class="outer-table">
 
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef> Name </th>
@@ -16,20 +16,20 @@
 
             <ng-container matColumnDef="updateVersion">
                 <th mat-header-cell *matHeaderCellDef> Update Version </th>
-                <td mat-cell *matCellDef="let element"> {{element.updateVersion}} </td>
+                <td mat-cell *matCellDef="let element;let depIndex = dataIndex;" id="{{id}}-updateVersion-{{depIndex}}"> {{element.updateVersion}} </td>
             </ng-container>
 
             <ng-container matColumnDef="isUpToDate">
                 <th mat-header-cell *matHeaderCellDef class="align-center"> Updated </th>
-                <td mat-cell *matCellDef="let element" class="align-center">
+                <td mat-cell *matCellDef="let element;let depIndex = dataIndex;" class="align-center">
                     @if(element.isUpToDate == true){
-                    <mat-icon style="color:#4bbf7a">check_circle</mat-icon>
+                    <mat-icon id="{{id}}-updatedIndicator-{{depIndex}}" style="color:#4bbf7a">check_circle</mat-icon>
                     }
                 </td>
             </ng-container>
 
             <ng-container matColumnDef="details">
-                <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
+                <th mat-header-cell *matHeaderCellDef> Versions </th>
                 <td mat-cell *matCellDef="let element;let depIndex = dataIndex;">
                     <button id="{{id}}-detailsButton-{{depIndex}}" mat-icon-button aria-label="expand row" (click)="selectDependency(element,$event)">
                         @if (element == currentDependency) {
@@ -48,7 +48,7 @@
                         <div class="flex items-center">
                             <mat-form-field class="field-control" id="updateVersionInputField" appearance="outline">
                                 <mat-label>Update Version</mat-label>
-                                <input matInput [value]="updateVersionTemp | async"
+                                <input matInput [value]="updateVersionTemp | async" id="{{id}}-versionInputText-{{rowIndex}}"
                                     (change)="updateVersionTemp.next( $any($event.target).value); $event.stopPropagation()">
                             </mat-form-field>
                             <ace-button class="ml-2 mb-5" color="primary" id="{{id}}-versionSelectButton-{{rowIndex}}"
@@ -57,11 +57,11 @@
                         @if(!element.versions.isEmpty()){
                         <div class="border border-solid border-divider-color rounded-lg overflow-hidden">
 
-                            <table class="inner-table" mat-table [dataSource]="element.versions.toArray()">
+                            <table id="{{id}}-versionsTable-{{rowIndex}}" class="inner-table" mat-table [dataSource]="element.versions.toArray()">
 
 
                                 <ng-container matColumnDef="select">
-                                    <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
+                                    <th mat-header-cell class="version-detail-header" *matHeaderCellDef>&nbsp;</th>
                                     <td mat-cell *matCellDef="let versionElement;let verIndex = index;">
                                         <mat-radio-button [name]="element.name" color="primary" id="{{id}}-versionRadio-{{rowIndex}}-{{verIndex}}"
                                             [checked]="matchVersion(element,versionElement)"
@@ -71,12 +71,12 @@
                                 </ng-container>
 
                                 <ng-container matColumnDef="version">
-                                    <th mat-header-cell *matHeaderCellDef> Version </th>
+                                    <th mat-header-cell class="version-detail-header" *matHeaderCellDef> Version </th>
                                     <td mat-cell *matCellDef="let versionElement"> {{versionElement.version}} </td>
                                 </ng-container>
 
                                 <ng-container matColumnDef="downloads">
-                                    <th mat-header-cell *matHeaderCellDef> {{downloadColumnLabel}} </th>
+                                    <th mat-header-cell class="version-detail-header" *matHeaderCellDef> {{downloadColumnLabel}} </th>
                                     <td mat-cell *matCellDef="let versionElement">
                                         {{getNAForNegativeValue(versionElement.downloads)}}
                                         <div class="bg-primary h-2"
@@ -85,23 +85,23 @@
                                 </ng-container>
 
                                 <ng-container matColumnDef="tag">
-                                    <th mat-header-cell *matHeaderCellDef> Tags </th>
+                                    <th mat-header-cell class="version-detail-header" *matHeaderCellDef> Tags </th>
                                     <td mat-cell *matCellDef="let versionElement"> {{versionElement.tag}} </td>
                                 </ng-container>
 
                                 <ng-container matColumnDef="vulnerabilityCount">
-                                    <th mat-header-cell *matHeaderCellDef> Vulnerability Count </th>
+                                    <th mat-header-cell class="version-detail-header" *matHeaderCellDef> Vulnerability Count </th>
                                     <td mat-cell *matCellDef="let versionElement">
                                         {{getNAForNegativeValue(versionElement.vulnerabilityCount)}} </td>
                                 </ng-container>
 
                                 <ng-container matColumnDef="publishDate">
-                                    <th mat-header-cell *matHeaderCellDef> Publish Date </th>
+                                    <th mat-header-cell class="version-detail-header" *matHeaderCellDef> Publish Date </th>
                                     <td mat-cell *matCellDef="let versionElement"> {{getFormattedDate(versionElement)}}
                                     </td>
                                 </ng-container>
                                 <tr mat-header-row class="bg-surface-container" *matHeaderRowDef="versionDetailColumns"></tr>
-                                <tr mat-row *matRowDef="let versionRow; columns: versionDetailColumns;" class="dependency-verion-row"></tr>
+                                <tr mat-row *matRowDef="let versionRow; columns: versionDetailColumns;" class="dependency-version-row"></tr>
                             </table>
                         </div>}
                         <div class="h-4"></div>

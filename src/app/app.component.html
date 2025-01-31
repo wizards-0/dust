@@ -6,13 +6,13 @@
       </h2>
     </div>
     <div class="flex items-center my-4 bg-surface rounded-lg">
-      <button mat-icon-button aria-label="home" routerLink="/home" routerLinkActive="active">
+      <button id="homeRouteButton" mat-icon-button aria-label="home" routerLink="/home" routerLinkActive="active">
         <mat-icon>home</mat-icon>
       </button>
-      <button mat-icon-button aria-label="settings" routerLink="/settings" routerLinkActive="active">
+      <button id="settingsRouteButton" mat-icon-button aria-label="settings" routerLink="/settings" routerLinkActive="active">
         <mat-icon>settings</mat-icon>
       </button>
-      <a mat-icon-button aria-label="docs" [href]="getDocsUrl()">
+      <a id="docsRouteButton" mat-icon-button aria-label="docs" [href]="getDocsUrl()">
         <mat-icon >library_books</mat-icon>
       </a>
     </div>

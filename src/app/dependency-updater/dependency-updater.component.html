@@ -7,7 +7,7 @@
                 <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">Node Package Json</mat-label>
                 <mat-form-field class="flex" id="packageJsonInputField" appearance="outline">
                     <mat-label>package.json content</mat-label>
-                    <textarea matInput id="packageJsonInput" [formControl]="packageJsonInput" class="flex overflow-hidden"></textarea>
+                    <textarea matInput id="packageJsonTextArea" [formControl]="packageJsonInput" class="flex overflow-hidden"></textarea>
                 </mat-form-field>
                 <ace-button id="checkPackageJson" class="mb-5 ml-2" color="primary" (click)="processPackageJson()">Check</ace-button>
             </div>
@@ -15,7 +15,7 @@
                 <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">Gradle build file (build.gradle / settings.gradle)</mat-label>
                 <mat-form-field class="flex" id="buildGradleInputField" appearance="outline">
                     <mat-label>build.gradle / settings.gradle content</mat-label>
-                    <textarea matInput [formControl]="gradleFileInput" class="flex overflow-hidden"></textarea>
+                    <textarea matInput id="gradleFileTextArea" [formControl]="gradleFileInput" class="flex overflow-hidden"></textarea>
                 </mat-form-field>
                 <ace-button id="checkGradleBuildFile" class="mb-5 ml-2" color="primary" (click)="processBuildGradle()">Check</ace-button>
             </div>

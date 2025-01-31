@@ -56,6 +56,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "testing": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/api-service/api-caller.ts",
+                  "with": "src/app/api-service/api-caller.mock.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -68,6 +79,9 @@
             },
             "development": {
               "buildTarget": "dust:build:development"
+            },
+            "testing": {
+              "buildTarget": "dust:build:testing"
             }
           },
           "defaultConfiguration": "development"
@@ -96,7 +110,7 @@
             "scripts": [],
             "karmaConfig": "karma.conf.js",
             "codeCoverageExclude": [
-                    "src/test/**/*.*"
+              "src/test/**/*.*"
             ]
           }
         }

@@ -46,11 +46,14 @@ export class GradleProcessor {
                         .vulnerabilityCount(vulnerabilityCount)
                         .publishDate(component['publishedEpochMillis'])
                         .build()
-                })
+                });
+                let top10Downloads = versions.sort( (v1,v2) => v2.downloads - v1.downloads ).slice(0,10);
                 let maxDownloads = versions.maxBy(ver => ver.downloads)?.downloads;
+                let latestVersion = versions.maxBy(ver => ver.publishDate);
+                let top10DownloadsWithLatestVersion = (!latestVersion || top10Downloads.includes(latestVersion)) ? top10Downloads : top10Downloads.push(latestVersion);
 
                 return dep.toBuilder()
-                    .versions(versions.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads)))
+                    .versions(top10DownloadsWithLatestVersion.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads)).sortBy(ver => ver.publishDate).reverse())
                     .build();
 
             }));

@@ -127,9 +127,9 @@ describe('GradleProcessor', () => {
     gradleProcessor.fetchVersions(deps).pipe(take(1)).subscribe(deps => {
       expect(deps).toEqual(jsonMatching(List([
         Dependency.builder().name('com.google.guava:guava').versions(List([
-          Version.builder().version('v1').downloads(21).relativeDownloads(100).publishDate(toMillis("2014-03-24")).vulnerabilityCount(2).build(),
+          Version.builder().version('v3').downloads(5).relativeDownloads(24).publishDate(toMillis("2015-04-11")).vulnerabilityCount(0).build(),
           Version.builder().version('v2').downloads(11).relativeDownloads(52).publishDate(toMillis("2014-09-21")).vulnerabilityCount(0).build(),
-          Version.builder().version('v3').downloads(5).relativeDownloads(24).publishDate(toMillis("2015-04-11")).vulnerabilityCount(0).build()
+          Version.builder().version('v1').downloads(21).relativeDownloads(100).publishDate(toMillis("2014-03-24")).vulnerabilityCount(2).build()          
         ])).build()
       ])));
       done();
@@ -241,7 +241,7 @@ describe('GradleProcessor', () => {
     });
   });
 
-  it('should be able to generate updated build file with current version if update version is absent & add dependency updated on section if absent', () => {
+  it('should be able to generate updated build file with current version if update version is absent', () => {
     let buildFile = `
 
     plugins {
@@ -307,6 +307,51 @@ describe('GradleProcessor', () => {
 
     }`
     expect(result).toEqual(expectedBuildFile);
+  });
+
+  it('should include latest dependency if missing in top 10 downloads', (done) => {
+    let buildFile = 
+`
+    dependencies {
+
+      implementation "org.springframework.boot:spring-boot-starter-web"
+      implementation "com.google.guava:guava:28.1-jre"
+
+    }`;
+
+    spyOn(mocks.apiService, 'getMavenDependencyVersions')
+      .withArgs('com.google.guava', 'guava').and.returnValue(of({
+        components: [
+            { version: "1", dependencyOfCount: 1000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2005-01-01").toMillis() },
+            { version: "2", dependencyOfCount: 2000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2006-01-01").toMillis() },
+            { version: "3", dependencyOfCount: 3000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2007-01-01").toMillis() },
+            { version: "4", dependencyOfCount: 4000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2008-01-01").toMillis() },
+            { version: "5", dependencyOfCount: 5000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2009-01-01").toMillis() },
+            { version: "6", dependencyOfCount: 6000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2010-01-01").toMillis() },
+            { version: "7", dependencyOfCount: 7000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2011-01-01").toMillis() },
+            { version: "8", dependencyOfCount: 8000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2012-01-01").toMillis() },
+            { version: "9", dependencyOfCount: 9000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2013-01-01").toMillis() },
+            { version: "10", dependencyOfCount: 10000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2014-01-01").toMillis() },
+            { version: "11", dependencyOfCount: 11000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2015-01-01").toMillis() },
+            { version: "12", dependencyOfCount: 12000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2016-01-01").toMillis() },
+            { version: "13", dependencyOfCount: 13000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2017-01-01").toMillis() },
+            { version: "14", dependencyOfCount: 14000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2018-01-01").toMillis() },
+            { version: "15", dependencyOfCount: 15000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2019-01-01").toMillis() },
+            { version: "16", dependencyOfCount: 16000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2020-01-01").toMillis() },
+            { version: "17", dependencyOfCount: 17000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2021-01-01").toMillis() },
+            { version: "18", dependencyOfCount: 18000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2022-01-01").toMillis() },
+            { version: "19", dependencyOfCount: 17500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2023-01-01").toMillis() },
+            { version: "20", dependencyOfCount: 16500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2024-01-01").toMillis() },
+            { version: "21", dependencyOfCount: 6500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2025-01-01").toMillis() }
+        ]
+    }));
+
+    let result = gradleProcessor.processBuildGradle(buildFile);
+
+    result.dependencyList$.subscribe(deps => {
+      expect(deps.get(0)?.versions.get(0)?.version).toBe("21");
+      done();
+    });
   });
 
 });

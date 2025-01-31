@@ -154,7 +154,7 @@ describe('NodeProcessor', () => {
 
   it('should parse dependencies from package json', () => {
     let rawDeps = Map({
-      "immmutable": "4.3.6",
+      "immutable": "4.3.6",
       "rxjs": "5.4.2",
       "typescript": "4.0.2",
       "zone.js": "7.8.5"
@@ -163,12 +163,19 @@ describe('NodeProcessor', () => {
     let result = nodeProcessor.parseDependencies(rawDeps);
     
     let expectedDeps = List([
-     Dependency.fromRaw({ "name": "immmutable", "currentVersion": "4.3.6"}),
+     Dependency.fromRaw({ "name": "immutable", "currentVersion": "4.3.6"}),
      Dependency.fromRaw({ "name": "rxjs", "currentVersion": "5.4.2"}),
      Dependency.fromRaw({ "name": "typescript", "currentVersion": "4.0.2"}),
      Dependency.fromRaw({ "name": "zone.js", "currentVersion": "7.8.5"})
     ]);
-    expect(result).toEqual(expectedDeps);    
+    
+    expect(result.equals(expectedDeps)).toBeTrue();
+
+    let invalidPackageJson = {dependencies:[{"typescript":"4.0.2"}]};
+    result = nodeProcessor.parseDependencies(Map(invalidPackageJson.dependencies));
+    
+    expect(result.isEmpty()).toBeTrue();
+    
   });
 
   it('should throw error for processing invalid json', () =>{

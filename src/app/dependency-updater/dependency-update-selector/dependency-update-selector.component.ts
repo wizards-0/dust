@@ -76,7 +76,7 @@ export class DependencyUpdateSelectorComponent implements OnInit {
   }
 
   getVersionPrefix(version:string):string {
-    const prefixMatch = /(\W*)(.+\..+\..+)/.exec(version);
+    const prefixMatch = /(\W*)(\w+.*)/.exec(version);
     return prefixMatch ? prefixMatch[1] : '';
   }
 

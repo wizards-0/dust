@@ -29,7 +29,6 @@ export class NodeProcessor {
 
     const dependencies = Map(this.packageJson['dependencies']);
     const devDependencies = Map(this.packageJson['devDependencies']);
-
     let dependencyList = this.parseDependencies(dependencies);
     let devDependencyList = this.parseDependencies(devDependencies);
 
@@ -40,16 +39,13 @@ export class NodeProcessor {
   }
 
   parseDependencies(dependencies: Map<any, any>): List<Dependency> {
-    return List(dependencies.entrySeq().map(entry => {
+    return List(dependencies.entrySeq().filter(e => e[0]).map(entry => {
       let name = entry[0] as string;
       let currentVersion = entry[1];
-      let updateVersion;
 
       return Dependency.fromRaw({
         name: name,
-        currentVersion: currentVersion,
-        updateVersion: updateVersion,
-        isUpToDate: false
+        currentVersion: currentVersion
       });
 
     }));

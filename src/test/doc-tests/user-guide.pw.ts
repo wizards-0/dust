@@ -1,26 +1,13 @@
 import { BrowserContext, Page, expect } from "@playwright/test";
 import { runDocTests } from "./doc-test-runner";
 
+const DEPENDENCIES_ID = 'Dependencies';
+const DEV_DEPENDENCIES_ID = 'DevDependencies';
+const PLUGIN_DEPENDENCIES_ID = 'PluginDependencies';
 
-let validPackageJson = {    
-    "dependencies": {
-        "rxjs": "~7.8.0",
-        "tslib": "^2.3.0",
-        "zone.js": "^0.15.0"
-    },
-    "devDependencies": {
-        "tailwindcss": "^3.4.17",
-        "tsx": "^4.19.2",
-        "typescript": "~5.5.2"
-    }
-}
-
-const userGuideDocTests = {
-    path: '/user-guide.md',
-    tests: [
-        {
-            title: 'Quick start doc test',
-            doc: `## Quick Start
+const quickStartTest = {
+    title: 'Quick start doc test',
+    doc: `## Quick Start
 - Copy **package.json** or **build.gradle** or **settings.gradle** to clipboard from your source
 - Paste it in the appropriate text box and click on check
 - Click on expand arrow in right most column, to see versions for that dependency
@@ -28,48 +15,44 @@ const userGuideDocTests = {
 - Click on copy, paste updated file back to source
 
 ---`,
-            test: async (page: Page, context: BrowserContext) => {
-                await page.goto('/');
-                let packageJsonInput = JSON.stringify(validPackageJson);
+    test: async (page: Page, context: BrowserContext) => {
 
-                await page.locator('textarea#packageJsonInput').fill(packageJsonInput);
-                await page.locator('ace-button#checkPackageJson').click();
-
-                await expect(page.locator('button#Dependencies-detailsButton-1')).toBeVisible({ timeout: 20000 });
-                await page.locator('button#Dependencies-detailsButton-1').click();
-                await page.locator('mat-radio-button#Dependencies-versionRadio-1-1').click();
-                await page.locator('ace-button#Dependencies-versionSelectButton-1').click();
-
-                await page.locator('button#DevDependencies-detailsButton-2').click();
-                await page.locator('mat-radio-button#DevDependencies-versionRadio-2-0').click();
-                await page.locator('ace-button#DevDependencies-versionSelectButton-2').click();
-
-                await page.locator('ace-button#copyPackageJsonButton').click();
-
-                await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-                const handle = await page.evaluateHandle(() => navigator.clipboard.readText());
-                const clipboardContent = await handle.jsonValue();
-                const resultPackageJson = JSON.parse(clipboardContent);
-                expect(resultPackageJson.dependencies.tslib).toBeTruthy();
+        let minPackageJson = {
+            "dependencies": {
+                "tslib": "^2.3.0"
             }
-        },
-        {
-            title: 'Build file input doc test',
-            doc: `
+        }
+        await page.goto('/');
+        await submitPackageJson(page, minPackageJson);
+
+        await waitForDependenciesToLoad(page);
+        await selectDependencyVersion(page, DEPENDENCIES_ID, 0, 1);
+
+        await page.locator('ace-button#copyPackageJsonButton').click();
+
+        const resultPackageJson = JSON.parse(await getClipboardText(page, context));
+        expect(resultPackageJson.dependencies.tslib).toBeTruthy();
+    }
+}
+
+const buildFileInputTest = {
+    title: 'Build file input doc test',
+    doc: `
 ## Detailed Guide
 
 ### Build File Input
 Currently, this tool supports Node & Gradle build files
 
 ---`,
-            test: () => {
-                console.log('User Guide - Build File Input')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Build file Node doc test',
-            doc: `
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        await expect(page.locator('mat-form-field')).toHaveCount(2);
+    }
+}
+
+const nodeBuildFileTest = {
+    title: 'Build file Node doc test',
+    doc: `
 #### Node
 It is able to parse node's package.json for getting dependencies. Sections dependencies & dev dependencies are parsed. Others like peer dependencies are ignored.
 They are not mandatory, but at least one of them should be present. 
@@ -80,14 +63,94 @@ The only validation is that string itself is a valid json. So if in json, depend
 For local packages that are not available in the npmjs registry, they will still be listed in the dependency grid, but will have an empty version detail grid.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Build File Node')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        let validPackageJsonSetup = async (page: Page) => {
+            let packageJson = {
+                "dependencies": {
+                    "tslib": "^2.3.0"
+                },
+                "devDependencies": {
+                    "my-ace-lib": "^1.0.22"
+                },
+                "peerDependencies": {
+                    "rxjs": "~7.8.0"
+                }
             }
-        },
-        {
-            title: 'Build file Gradle doc test',
-            doc: `
+            await page.goto('/');
+            await submitPackageJson(page, packageJson);
+            await waitForDependenciesToLoad(page);
+        };
+
+        let testPeerDependenciesAreIgnored = async (page: Page) => {
+            await verifyDependencyCount(page, 2);
+        };
+
+        let testLocalLibLoadsWithoutVersions = async (page: Page) => {
+            await expect(page.getByText('my-ace-lib')).toBeVisible();
+            await toggleDependency(page, DEV_DEPENDENCIES_ID, 0);
+            await page.waitForTimeout(50);
+            await expect(page.locator(`#${DEV_DEPENDENCIES_ID}-versionsTable-0`)).not.toBeVisible();
+        };
+
+        let testDependencyOnlyPackageJson = async (page: Page) => {
+            let packageJson = {
+                "dependencies": {
+                    "tslib": "^2.3.0"
+                }
+            }
+            await submitPackageJson(page, packageJson);
+            await waitForDependenciesToLoad(page);
+            await verifyDependencyTypeIsNotVisible(page, DEV_DEPENDENCIES_ID);
+        };
+
+        let testDevDependencyOnlyPackageJson = async (page: Page) => {
+            let packageJson = {
+                "devDependencies": {
+                    "typescript": "^2.3.0"
+                }
+            }
+            await submitPackageJson(page, packageJson);
+            await waitForDependenciesToLoad(page);
+            await verifyDependencyTypeIsNotVisible(page, DEPENDENCIES_ID);
+        };
+
+        let testInvalidJson = async (page: Page) => {
+            await page.locator('textarea#packageJsonTextArea').fill('KEKW');
+            await page.locator('ace-button#checkPackageJson').click();
+            await verifyErrorIsShown(page, 'Invalid Json');
+        };
+
+        let testEmptyPackageJson = async (page: Page) => {
+            let packageJson = {
+            }
+            await submitPackageJson(page, packageJson);
+            await verifyErrorIsShown(page, 'Invalid build file');
+        };
+
+        let testInvalidPackageJson = async (page: Page) => {
+            let packageJson = {
+                "devDependencies": [{
+                    "typescript": "^2.3.0"
+                }]
+            }
+            await submitPackageJson(page, packageJson);
+            await verifyErrorIsShown(page, 'Invalid build file');
+        };
+
+        await validPackageJsonSetup(page);
+        await testPeerDependenciesAreIgnored(page);
+        await testLocalLibLoadsWithoutVersions(page);
+        await testDependencyOnlyPackageJson(page);
+        await testDevDependencyOnlyPackageJson(page);
+        await testInvalidJson(page);
+        await testEmptyPackageJson(page);
+        await testInvalidPackageJson(page);
+    }
+}
+
+const gradleBuildFileTest = {
+    title: 'Build file Gradle doc test',
+    doc: `
 #### Gradle
 For gradle, you can paste build.gradle or settings.gradle. It is able to parse dev dependencies (api, impl, test, etc) and plugin dependencies for which you have to specify version.
 
@@ -98,14 +161,103 @@ In gradle there are lot of ways to write dependency version. But only two format
 All the dependencies / plugins which are not in this format will be ignored. And dependencies in above format will be processed.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Build File Gradle')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Dependency List',
-            doc: `
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        let testBuildGradle = async (page: Page) => {
+            let buildGradle = `
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+}
+dependencies {
+    implementation 'com.google.guava:guava:28.1-jre'
+}`;
+            await submitGradleFile(page, buildGradle);
+            await waitForDependenciesToLoad(page);
+            await verifyDependencyCount(page, 2);
+        };
+
+        let testSettingsGradle = async (page: Page) => {
+            let settingsGradle = `
+pluginManagement {
+	plugins {
+		id "java-library"
+		id "org.sonarqube" version "5.1.0.4882"
+	}
+	resolutionStrategy {
+	}
+	repositories {
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
+dependencyResolutionManagement {
+	versionCatalogs {
+		libs {
+			library("immutables.value","org.immutables:value:2.10.1")
+		}
+
+		testLibs{
+			library("junit.api","org.junit.jupiter:junit-jupiter-api:5.10.3")
+		}
+	}
+}
+rootProject.name = "ace"`;
+            await submitGradleFile(page, settingsGradle);
+            await waitForDependenciesToLoad(page);
+            await verifyDependencyCount(page, 3);
+        };
+
+        let testDependencyFormat = async (page: Page) => {
+            let buildGradle = `
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.google.guava:guava:28.1-jre'
+}`;
+            await submitGradleFile(page, buildGradle);
+            await waitForDependenciesToLoad(page);
+            await verifyDependencyCount(page, 1);
+            await verifyDependencyTypeIsNotVisible(page, PLUGIN_DEPENDENCIES_ID);
+        };
+
+        let testPluginFormat = async (page: Page) => {
+            let buildGradle = `
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+    id 'java-library'
+}`;
+            await submitGradleFile(page, buildGradle);
+            await waitForDependenciesToLoad(page);
+            await verifyDependencyCount(page, 1);
+            await verifyDependencyTypeIsNotVisible(page, DEPENDENCIES_ID);
+        };
+
+        let testUnsupportedFormat = async (page: Page) => {
+            let buildGradle = `
+plugins {
+    id 'java-library'
+}
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}`;
+            await submitGradleFile(page, buildGradle);
+            await verifyErrorIsShown(page, 'Invalid build file');
+            await submitGradleFile(page, '');
+            await verifyErrorIsShown(page, 'Invalid build file');
+        };
+
+        await testBuildGradle(page);
+        await testSettingsGradle(page);
+        await testDependencyFormat(page);
+        await testPluginFormat(page);
+        await testUnsupportedFormat(page);
+        expect(userGuideDocTests.tests).toBeTruthy();
+    }
+}
+
+const dependencyListTest = {
+    title: 'Dependency List',
+    doc: `
 ### Dependency List
 After the build file is parsed; Dependency details will be fetched from repository APIs. Node & Gradle both have two lists. Node has Dependencies & Dev Dependencies. Gradle has Dependencies & Plugin Dependencies. At least one list will be present in each build system.
 
@@ -117,29 +269,98 @@ Dependency List has following columns which are common to Node & Gradle
 | Current Version   | Version present in the current build file                         |
 | Update Version    | Version which will be used in updated file                        |
 | Updated           | Shows a check mark if a version was selected for that dependency to track progress |
-| Details           | Each row has an expand icon, which can be clicked to see version details |
+| Versions          | Each row has an expand icon, which can be clicked to see version details |
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency List')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+
+        let verifyColumns = async (page: Page, columns: string[]) => {
+
+            for (let columnName of columns) {
+                await expect(page.locator(`//th[contains(text(), "${columnName}")]`)).toHaveCount(2);
             }
-        },
-        {
-            title: 'Dependency Versions',
-            doc: `
+        };
+
+        let testNodeColumns = async (page: Page) => {
+            let packageJson = {
+                "dependencies": {
+                    "tslib": "^2.3.0"
+                },
+                "devDependencies": {
+                    "typescript": "^2.3.0"
+                }
+            }
+            await submitPackageJson(page, packageJson);
+            await waitForDependenciesToLoad(page);
+            await verifyColumns(page, ['Name', 'Current Version', 'Update Version', 'Updated', 'Versions']);
+        };
+
+        let testGradleColumns = async (page: Page) => {
+            let buildGradle = `
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+}
+dependencies {
+    implementation 'com.google.guava:guava:28.1-jre'
+}`;
+            await submitGradleFile(page, buildGradle);
+            await waitForDependenciesToLoad(page);
+            await verifyColumns(page, ['Name', 'Current Version', 'Update Version', 'Updated', 'Versions']);
+        };
+
+        await testNodeColumns(page);
+        await testGradleColumns(page);
+    }
+}
+
+const dependencyVersionTest = {
+    title: 'Dependency Versions',
+    doc: `
 ### Dependency Versions
-Version detail grid, displays 10 most relevant versions for that dependency. How the relevant versions are picked is detailed in **[user flows](/user-flows)**. Dependency versions have slight differences between build systems, as their repository API provide different attributes.
+Version detail grid, displays 10 most relevant versions along with latest for that dependency.
+How the relevant versions are picked is detailed in **[user flows](/user-flows)**.
+Dependency versions have slight differences between build systems, as their repository API provide different attributes.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Versions')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+
+        let testNodeVersions = async (page: Page) => {
+            let packageJson = {
+                "dependencies": {
+                    "tslib": "^2.3.0"
+                },
+                "devDependencies": {
+                    "typescript": "^2.3.0"
+                }
             }
-        },
-        {
-            title: 'Dependency Versions Node',
-            doc: `
+            await submitPackageJson(page, packageJson);
+            await waitForDependenciesToLoad(page);
+            await verifyVersionCount(page, 22);
+        };
+
+        let testGradleVersions = async (page: Page) => {
+            let buildGradle = `
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+}
+dependencies {
+    implementation 'com.google.guava:guava:28.1-jre'
+}`;
+            await submitGradleFile(page, buildGradle);
+            await waitForDependenciesToLoad(page);
+            await verifyVersionCount(page, 21);
+        };
+
+        await testNodeVersions(page);
+        await testGradleVersions(page);
+    }
+}
+
+const nodeDependencyVersionTest = {
+    title: 'Dependency Versions Node',
+    doc: `
 #### Node
 
 | Column Name       | Purpose                                                           |
@@ -150,14 +371,35 @@ Version detail grid, displays 10 most relevant versions for that dependency. How
 | Publish Date      | Date when this version was published                              |
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Versions Node')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+
+        let verifyColumns = async (page: Page, columns: string[]) => {
+
+            for (let columnName of columns) {
+                await expect(page.locator(`//th[contains(text(), "${columnName}") and contains(@class,"version-detail-header")]`)).toHaveCount(2);
             }
-        },
-        {
-            title: 'Dependency Versions Gradle',
-            doc: `
+            await expect(page.locator(`//th[contains(@class,"version-detail-header")]`)).toHaveCount((columns.length + 1) * 2);
+        };
+
+        let packageJson = {
+            "dependencies": {
+                "tslib": "^2.3.0"
+            },
+            "devDependencies": {
+                "typescript": "^2.3.0"
+            }
+        }
+        await submitPackageJson(page, packageJson);
+        await waitForDependenciesToLoad(page);
+
+        await verifyColumns(page, ['Version', 'Downloads (7 days)', 'Tags', 'Publish Date']);
+    }
+};
+
+const gradleDependencyVersionTest = {
+    title: 'Dependency Versions Gradle',
+    doc: `
 #### Gradle
 | Column Name           | Purpose                                                           |
 |-----------------------|-------------------------------------------------------------------|
@@ -167,82 +409,273 @@ Version detail grid, displays 10 most relevant versions for that dependency. How
 | Publish Date          | Date when this version was published                              |
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Versions Gradle')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+
+        let verifyColumns = async (page: Page, columns: string[]) => {
+
+            for (let columnName of columns) {
+                await expect(page.locator(`//th[contains(text(), "${columnName}") and contains(@class,"version-detail-header")]`)).toHaveCount(2);
             }
-        },
-        {
-            title: 'Dependency Version Selection',
-            doc: `
+            await expect(page.locator(`//th[contains(@class,"version-detail-header")]`)).toHaveCount((columns.length + 1) * 2);
+        };
+
+        let buildGradle = `
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+}
+dependencies {
+    implementation 'com.google.guava:guava:28.1-jre'
+}`;
+        await submitGradleFile(page, buildGradle);
+        await waitForDependenciesToLoad(page);
+
+        await verifyColumns(page, ['Version', 'Depended On', 'Vulnerability Count', 'Publish Date']);
+    }
+}
+
+const dependencyVersionSelectionTest = {
+    title: 'Dependency Version Selection',
+    doc: `
 #### Version Selection
 After expanding dependency, a sub grid with relevant versions will be displayed. Select the radio button with desired version to initiate selection.
 This version will be populated in the text box above grid, this is done to provide option for manual edits if required.
-When selecting a new version, If the existing version had identifiable **[prefix*](/user-guide?id=version-prefix)**, it is automatically added to the new version. This is done as it is the most common way to describe versions in node. Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
+When selecting a new version, If the existing version had identifiable **[prefix*](/user-guide?id=version-prefix)**,
+it is automatically added to the new version. This is done as it is the most common way to describe versions in node.
+Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
 
-Text Box can also be used to specify version for local dependencies manually. Click on select button after confirming the version is in text box, to complete version selection.
-Sub grid will auto collapse on clicking select to speed up the process. Dependency will have update version populated in main grid 
+Text Box can also be used to specify version for local dependencies manually.
+Click on select button after confirming the version is in text box, to complete version selection.
+Sub grid will auto collapse on clicking select to speed up the process.
+Dependency will have update version populated in main grid 
 and it will be marked with green check to track progress.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Version Selection')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        let packageJson = {
+            "dependencies": {
+                "tslib": "^19"
+            },
+            "devDependencies": {
+                "typescript": "^2.3.0"
             }
-        },
-        {
-            title: 'Dependency Version Prefix',
-            doc: `
+        }
+        await submitPackageJson(page, packageJson);
+        await waitForDependenciesToLoad(page);
+        await toggleDependency(page, DEPENDENCIES_ID, 0);
+        await expect(page.locator(`input#${DEPENDENCIES_ID}-versionInputText-0`)).toHaveValue('^19');
+        await expect(page.locator(`#${DEPENDENCIES_ID}-versionRadio-0-2-input`)).toBeChecked();
+        await page.locator(`mat-radio-button#${DEPENDENCIES_ID}-versionRadio-0-0`).click();
+        await expect(page.locator(`input#${DEPENDENCIES_ID}-versionInputText-0`)).toHaveValue('^21');
+        await page.locator(`ace-button#${DEPENDENCIES_ID}-versionSelectButton-0`).click();
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('^21');
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-0`)).toBeVisible();
+
+        await toggleDependency(page, DEV_DEPENDENCIES_ID, 0);
+        page.locator(`input#${DEV_DEPENDENCIES_ID}-versionInputText-0`).fill('custom-version');
+        await page.locator(`ace-button#${DEV_DEPENDENCIES_ID}-versionSelectButton-0`).click();
+        await expect(page.locator(`td#${DEV_DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('custom-version');
+        await expect(page.locator(`mat-icon#${DEV_DEPENDENCIES_ID}-updatedIndicator-0`)).toBeVisible();
+    }
+}
+
+const versionPrefixTest = {
+    title: 'Dependency Version Prefix',
+    doc: `
 #### *Version Prefix
-If version is in format \`\`\`[symbols][wordChars].[wordChars].[wordChars]\`\`\`, then symbols at the beginning are treated as prefix
+If version is in format \`\`\`[symbols][wordChar][anything]\`\`\`, then symbols at the beginning are treated as prefix
 
 ---`,
-            test: () => {
-                console.log('User Guide - Dependency Version Prefix')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        let packageJson = {
+            "dependencies": {
+                "tslib": "^19"
+            },
+            "devDependencies": {
+                "typescript": "18"
             }
-        },
-        {
-            title: 'Output',
-            doc: `
+        }
+        await submitPackageJson(page, packageJson);
+        await waitForDependenciesToLoad(page);
+
+        await selectDependencyVersion(page, DEPENDENCIES_ID, 0, 0);
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('^21');
+
+        await selectDependencyVersion(page, DEV_DEPENDENCIES_ID, 0, 0);
+        await expect(page.locator(`td#${DEV_DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('21');
+    }
+}
+
+const outputTest = {
+    title: 'Output',
+    doc: `
 ### Output
 After making all the changes, click on copy button to copy updated build file to clipboard. Updated build file will have new versions for dependencies which were updated.
 While no changes will be made to other part of build file. This can now be pasted to the build file in original source code.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Output')
-                expect(userGuideDocTests.tests).toBeTruthy();
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        let packageJson = {
+            "dependencies": {
+                "tslib": "^19"
+            },
+            "devDependencies": {
+                "typescript": "18"
             }
-        },
-        {
-            title: 'Settings',
-            doc: `
+        }
+        await submitPackageJson(page, packageJson);
+        await waitForDependenciesToLoad(page);
+
+        await selectDependencyVersion(page, DEPENDENCIES_ID, 0, 0);
+        await selectDependencyVersion(page, DEV_DEPENDENCIES_ID, 0, 0);
+
+        await page.locator('ace-button#copyPackageJsonButton').click();
+        await expect(page.getByText('Updated package Json copied to clipboard')).toBeVisible();
+        const resultPackageJson = JSON.parse(await getClipboardText(page, context));
+        let expectedpackageJson = {
+            "dependencies": {
+                "tslib": "^21"
+            },
+            "devDependencies": {
+                "typescript": "21"
+            }
+        }
+        expect(resultPackageJson).toEqual(expectedpackageJson);
+    }
+}
+
+const settingsTest = {
+    title: 'Settings',
+    doc: `
 ## Settings
 Settings allows you to specify color scheme, and CORS proxy Url.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Settings')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        },
-        {
-            title: 'Settings Proxy Url',
-            doc: `
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/#/settings');
+        await expect(page.getByText('Color Scheme')).toBeVisible();
+        await expect(page.getByText('Cors Proxy', { exact: true })).toBeVisible();
+        await expect(page.locator('mat-label')).toHaveCount(3);
+    }
+}
+
+const settingsProxyUrlTest = {
+    title: 'Settings Proxy Url',
+    doc: `
 ### Proxy Url
-API for gradle plugin dependencies does not allow CORS calls. Hence a CORS proxy is needed to make the API call. Following are the options to provide CORS proxy URL
-- Preferred option is to run CORS proxy locally. See **[setup](/dev-guide?id=setup)** for details. After local server is up, \`\`\`http://localhost:3040/get?url=\`\`\` can be used as proxy URL.
-- If the first method is not working for any reason, any other open source proxy can be deployed locally and its URL can be used. It should work with format proxyUrl+originalUrl.  
+API for gradle plugin dependencies does not allow CORS calls. Hence a CORS proxy is needed to make the API call.
+Following are the options to provide CORS proxy URL
+- Preferred option is to run CORS proxy locally. See **[setup](/dev-guide?id=setup)** for details.
+After local server is up, \`\`\`http://localhost:3040/get?url=\`\`\` can be used as proxy URL.
+- If the first method is not working for any reason, any other open source proxy can be deployed locally and its URL can be used.
+It should work with format proxyUrl+originalUrl.  
 Example "https://github.com/Rob--W/cors-anywhere"
-- Least preferred option is to use a public proxy, like \`\`\`https://api.allorigins.win/get?url=\`\`\`. This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.
+- Least preferred option is to use a public proxy, like \`\`\`https://api.allorigins.win/get?url=\`\`\`.
+This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.
 
 ---`,
-            test: () => {
-                console.log('User Guide - Settings Proxy Url')
-                expect(userGuideDocTests.tests).toBeTruthy();
-            }
-        }
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('http://localhost:4200/#/settings');
+        await page.locator('input#proxyUrlInput').fill('');
+        await page.goto('http://localhost:4200/#/home');
+        let buildGradle = `
+plugins {
+    id 'org.springframework.boot' version '2.7.1'
+}
+dependencies {
+    implementation 'com.google.guava:guava:28.1-jre'
+}`;
+        await submitGradleFile(page, buildGradle);
+        await waitForDependenciesToLoad(page);
+        await toggleDependency(page,PLUGIN_DEPENDENCIES_ID,0);
+        await page.waitForTimeout(50);
+        await expect(page.locator(`#${PLUGIN_DEPENDENCIES_ID}-versionsTable-0`)).not.toBeVisible();
+
+        await page.goto('http://localhost:4200/#/settings');
+        await page.locator('input#proxyUrlInput').fill('http://localhost:3040/get?url=');
+
+        await page.goto('http://localhost:4200/#/home');
+        await submitGradleFile(page, buildGradle);
+        await waitForDependenciesToLoad(page);
+        await toggleDependency(page,PLUGIN_DEPENDENCIES_ID,0);
+        await expect(page.locator(`#${PLUGIN_DEPENDENCIES_ID}-versionsTable-0`)).toBeVisible();
+    }
+}
+
+async function verifyErrorIsShown(page: Page, errorMessage: string) {
+    await expect(page.getByText(errorMessage)).toBeVisible();
+    await closeAlert(page);
+}
+
+async function submitPackageJson(page: Page, packageJson: any) {
+    let packageJsonInput = JSON.stringify(packageJson);
+    await page.locator('textarea#packageJsonTextArea').fill(packageJsonInput);
+    await page.locator('ace-button#checkPackageJson').click();
+}
+
+async function waitForDependenciesToLoad(page: Page) {
+    await expect(page.locator('table').nth(0)).toBeVisible({ timeout: 20000 });
+}
+
+async function toggleDependency(page: Page, dependencyType: string, dependencyIndex: number) {
+    await page.locator(`button#${dependencyType}-detailsButton-${dependencyIndex}`).click();
+}
+
+async function selectDependencyVersion(page: Page, dependencyType: string, dependencyIndex: number, versionIndex: number) {
+    await toggleDependency(page, dependencyType, dependencyIndex);
+    await page.locator(`mat-radio-button#${dependencyType}-versionRadio-${dependencyIndex}-${versionIndex}`).click();
+    await page.locator(`ace-button#${dependencyType}-versionSelectButton-${dependencyIndex}`).click();
+}
+
+async function getClipboardText(page: Page, context: BrowserContext) {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const handle = await page.evaluateHandle(() => navigator.clipboard.readText());
+    const clipboardContent = await handle.jsonValue();
+    return clipboardContent;
+}
+
+async function verifyDependencyCount(page: Page, count: number) {
+    await expect(page.locator('tr.dependency-row')).toHaveCount(count);
+}
+
+async function verifyVersionCount(page: Page, count: number) {
+    await expect(page.locator('tr.dependency-version-row')).toHaveCount(count);
+}
+
+async function closeAlert(page: Page) {
+    await page.locator('#closeAlertBtn').click();
+    await expect(page.locator('#closeAlertBtn')).not.toBeVisible();
+}
+
+async function submitGradleFile(page: Page, gradleFile: string) {
+    await page.locator('textarea#gradleFileTextArea').fill(gradleFile);
+    await page.locator('ace-button#checkGradleBuildFile').click();
+}
+
+async function verifyDependencyTypeIsNotVisible(page: Page, dependencyType: string) {
+    await expect(page.locator(`#${dependencyType}-dependencyListTable`)).not.toBeVisible();
+}
+
+
+const userGuideDocTests = {
+    path: '/user-guide.md',
+    tests: [
+        quickStartTest,
+        buildFileInputTest,
+        nodeBuildFileTest,
+        gradleBuildFileTest,
+        dependencyListTest,
+        dependencyVersionTest,
+        nodeDependencyVersionTest,
+        gradleDependencyVersionTest,
+        dependencyVersionSelectionTest,
+        versionPrefixTest,
+        outputTest,
+        settingsTest,
+        settingsProxyUrlTest
     ]
 }
 
