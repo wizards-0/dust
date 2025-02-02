@@ -3,9 +3,10 @@ import { DateTime } from "luxon";
 import { from, map, mergeAll, Observable, of, reduce } from "rxjs";
 import { Dependency } from "../model/dependency";
 import { Version } from "../model/version";
-import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
+import { getVersionWithRelativeDownloads, matchVersion } from "../dependency-updater.component";
 import { Injectable } from "@angular/core";
 import { ApiService } from "../../api-service/api.service";
+import { SettingsService } from "../../settings/settings.service";
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,7 @@ export class NodeProcessor {
 
   private readonly versionDownloadsComparator = (v1: Version, v2: Version) => ((v2.downloads) - (v1.downloads));
 
-  constructor(private apiService: ApiService) { }
+  constructor(private readonly apiService: ApiService,private readonly settingsService:SettingsService) { }
 
 
   public processPackageJson(packageJson: string) {
@@ -94,19 +95,23 @@ export class NodeProcessor {
         let publishInfo = Map(packageInfo['time']);
         let top10Downloads = dep.versions.sort(this.versionDownloadsComparator).slice(0, 10);
         let latestVersionString = packageInfo['dist-tags']['latest'];
-        let top10VersionsWithLatestTag = this.withLatestVersion(top10Downloads, latestVersionString, dep.versions)
+        let lastUpdatedVersion = (publishInfo.entrySeq()
+        .filter( (e:any) => !this.settingsService.getSettings().versionBlackList.find(versionFilter => e[0].includes(versionFilter)))
+        .max( (e1:any,e2:any) => DateTime.fromISO(e1[1]).toMillis() - DateTime.fromISO(e2[1]).toMillis()) as any)[0];
+        let top10VersionsWithLatestTag = this.withLatestVersions(top10Downloads, latestVersionString,lastUpdatedVersion, dep.versions)
           .map(ver => ver.with(builder => {
-            builder.tag(distTags.get(ver.version, '') as string);
+            builder.tag(distTags.get(ver.version, ''));
             let publishDate = publishInfo.get(ver['version']) as string;
             if(publishDate){
               builder.publishDate(DateTime.fromISO(publishDate).toMillis())
             }
           }));
-
         let maxDownloads = top10VersionsWithLatestTag.maxBy(ver => ver.downloads)?.downloads;
         let top10VersionsWithLatestTagAndRelativeDownloads = top10VersionsWithLatestTag.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads))
-
-        return dep.toBuilder().versions(top10VersionsWithLatestTagAndRelativeDownloads.sort((v1, v2) => v2.publishDate - v1.publishDate)).build();
+        let relevantVersions = top10VersionsWithLatestTagAndRelativeDownloads.sort((v1, v2) => v2.publishDate - v1.publishDate).slice(0, 10);
+        return dep.toBuilder()
+          .isLatest(matchVersion(dep,relevantVersions.get(0,Version.empty())))
+          .versions(relevantVersions).build();
       }));
   }
 
@@ -126,19 +131,31 @@ export class NodeProcessor {
     return depsMap;
   }
 
-  withLatestVersion(top10Downloads: List<Version>, latestVersionString: string, allDownloads: List<Version>): List<Version> {
-    let top10VersionsWithLatestTag;
-    if (latestVersionString && !top10Downloads.find(ver => ver.version == latestVersionString)) {
-      let latestVersion = Version.builder()
-        .version(latestVersionString)
-        .downloads((allDownloads.find(v => v.version == latestVersionString) ?? Version.empty()).downloads)
-        .build();
-      top10VersionsWithLatestTag = top10Downloads.push(latestVersion);
-    } else {
-      top10VersionsWithLatestTag = top10Downloads;
+  withLatestVersions(top10Downloads: List<Version>, latestVersionString: string | undefined, lastUpdatedVersionString: string, allDownloads: List<Version>): List<Version> {
+    let result = top10Downloads;
+    let missingLatestTagVersion = true;
+    let missingLastUpdatedVersion = true;
+    if(latestVersionString == lastUpdatedVersionString) missingLastUpdatedVersion = false;
+    for(let ver of top10Downloads) {
+      if(ver.version == latestVersionString) missingLatestTagVersion = false;
+      if(ver.version == lastUpdatedVersionString) missingLastUpdatedVersion = false;
     }
 
-    return top10VersionsWithLatestTag;
+    if(latestVersionString && missingLatestTagVersion) {
+      result = result.push(Version.builder()
+      .version(latestVersionString)
+      .downloads((allDownloads.find(v => v.version == latestVersionString) ?? Version.empty()).downloads)
+      .build())
+    }
+
+    if(missingLastUpdatedVersion) {
+      result = result.push(Version.builder()
+      .version(lastUpdatedVersionString)
+      .downloads((allDownloads.find(v => v.version == lastUpdatedVersionString) ?? Version.empty()).downloads)
+      .build())
+    }
+
+    return result;
   }
 
   mapTagsToVersion(distTags: any): Map<string, string> {

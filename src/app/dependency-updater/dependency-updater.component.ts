@@ -12,6 +12,7 @@ import { Dependency } from './model/dependency';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
+import {MatSelectModule} from '@angular/material/select'; 
 import { ButtonComponent,AlertService, AlertCategory } from 'ace-common-components';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,7 +23,7 @@ import { DependencyUpdateSelectorComponent } from './dependency-update-selector/
     selector: 'dependency-updater',
     templateUrl: './dependency-updater.component.html',
     host: { class: 'flex basis-full w-full h-full' },
-    imports: [MatInputModule, ButtonComponent, MatButtonModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
+    imports: [MatInputModule, ButtonComponent, MatButtonModule, MatSelectModule, MatFormFieldModule, MatIconModule, MatTooltipModule, MatProgressSpinnerModule, DependencyUpdateSelectorComponent, ReactiveFormsModule],
     providers: [AlertService],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -31,6 +32,7 @@ export class DependencyUpdaterComponent {
   packageJson: any;
   packageJsonInput = new FormControl<string>('');
   gradleFileInput = new FormControl<string>('');
+  selectAllInput = new FormControl<number>(0);
 
   buildFileReceived = false;
   packageJsonParsed = false;
@@ -145,10 +147,42 @@ export class DependencyUpdaterComponent {
     }
   }
 
+  updatedDependenciesVersion(){
+    this.selectLatestForDataSource(this.dependenciesDataSource);
+    this.selectLatestForDataSource(this.devDependenciesDataSource);
+    this.selectLatestForDataSource(this.pluginDependenciesDataSource);
+    this.alertService.show('Dependencies updated.',AlertCategory.success,2000);
+  }
+
+  selectLatestForDataSource(dataSource:BehaviorSubject<List<Dependency>>){
+    let latestIndex = this.selectAllInput.value ?? 0;
+    let updatedDependencies = dataSource.value.map(dep => 
+      dep.isSelected && !matchVersion(dep,dep.versions.get(latestIndex,Version.empty()))
+      ? dep.with(depMut => {      
+        let updateVersion = getVersionPrefix(dep.currentVersion) + dep.versions.get(latestIndex,Version.empty()).version
+        depMut.updateVersion( updateVersion );
+        depMut.isUpdated(true);
+        depMut.isLatest(latestIndex == 0)      
+      }) : dep
+  );
+    dataSource.next(updatedDependencies);
+  }
+
 }
 
 export function getVersionWithRelativeDownloads(ver: Version, maxDownloads: number | undefined): Version {
   return maxDownloads
   ? ver.toBuilder().relativeDownloads(Math.round(ver.downloads / maxDownloads * 100)).build()
   : ver.toBuilder().relativeDownloads(0).build();
+}
+
+export function getVersionPrefix(version:string):string {
+  const prefixMatch = /(\W*)(\w+.*)/.exec(version);
+  return prefixMatch ? prefixMatch[1] : '';
+}
+
+export function matchVersion(dependency:Dependency,version:Version):boolean {
+  let versionToMatch = dependency.updateVersion ? dependency.updateVersion : dependency.currentVersion;
+  let prefix = getVersionPrefix(versionToMatch);
+  return versionToMatch == (prefix+version.version);
 }

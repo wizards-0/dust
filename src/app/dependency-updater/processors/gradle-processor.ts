@@ -2,10 +2,11 @@ import { List, Map } from "immutable";
 import { Dependency } from "../model/dependency";
 import { Version } from "../model/version";
 import { catchError, from, map, mergeAll, Observable, of, reduce } from "rxjs";
-import { getVersionWithRelativeDownloads } from "../dependency-updater.component";
+import { getVersionWithRelativeDownloads, matchVersion } from "../dependency-updater.component";
 import { DateTime } from "luxon";
 import { Injectable } from "@angular/core";
 import { ApiService } from "../../api-service/api.service";
+import { SettingsService } from "../../settings/settings.service";
 
 @Injectable({
     providedIn: 'root',
@@ -14,7 +15,7 @@ export class GradleProcessor {
     
     gradleFile:GradleFile = new GradleFile(List([]),new FileIndexRange(-1,-1),new FileIndexRange(-1,-1));
 
-    constructor(private readonly apiService: ApiService) { }
+    constructor(private readonly apiService: ApiService, private readonly settingsService:SettingsService) { }
 
     processBuildGradle(buildGradle: string) {
         let lines = List(buildGradle.replaceAll('\'', '"').split('\n'));
@@ -49,13 +50,16 @@ export class GradleProcessor {
                 });
                 let top10Downloads = versions.sort( (v1,v2) => v2.downloads - v1.downloads ).slice(0,10);
                 let maxDownloads = versions.maxBy(ver => ver.downloads)?.downloads;
-                let latestVersion = versions.maxBy(ver => ver.publishDate);
+                let latestVersion = versions.filter(ver => !this.settingsService.getSettings().versionBlackList.includes(ver.version))
+                    .maxBy(ver => ver.publishDate);
                 let top10DownloadsWithLatestVersion = (!latestVersion || top10Downloads.includes(latestVersion)) ? top10Downloads : top10Downloads.push(latestVersion);
 
+                let relevantVersions  = top10DownloadsWithLatestVersion.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads)).sortBy(ver => ver.publishDate).reverse().slice(0, 10);
+                
                 return dep.toBuilder()
-                    .versions(top10DownloadsWithLatestVersion.map(ver => getVersionWithRelativeDownloads(ver, maxDownloads)).sortBy(ver => ver.publishDate).reverse())
+                    .isLatest(matchVersion(dep,relevantVersions.get(0,Version.empty())))
+                    .versions(relevantVersions)
                     .build();
-
             }));
         });
 
@@ -83,6 +87,7 @@ export class GradleProcessor {
                     .build());
 
                 return dep.toBuilder()
+                    .isLatest(matchVersion(dep,versions.get(0,Version.empty())))
                     .versions(versionsWithLastUpdated)
                     .build();
             }),catchError(()=>of(dep)));

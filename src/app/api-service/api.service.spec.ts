@@ -4,6 +4,7 @@ import { ApiService, ApiUrl } from './api.service';
 import { DateTime } from 'luxon';
 import { Settings } from '../settings/settings';
 import { catchError, reduce } from 'rxjs';
+import { SettingsService } from '../settings/settings.service';
 
 describe('API Service', () => {
 
@@ -70,7 +71,12 @@ describe('API Service', () => {
   });
 
   it('should be able to call api for gradle plugin versions', (done) => {
-    spyOn(apiService.settingsService, 'getSettings').and.returnValue(new Settings('light', ApiUrl.Proxy));
+    spyOn(apiService.settingsService, 'getSettings').and.returnValue(new Settings(
+                SettingsService.CURRENT_SETTINGS_VERSION,
+                'light',
+                ApiUrl.Proxy,
+                SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+            ));
     apiService.getGradlePluginVersions('info.solidsoft.pitest').subscribe((resp: any) => {
       let verArr: any[] = resp.metadata.versioning.versions.version;
       expect(typeof verArr).toBe('object');

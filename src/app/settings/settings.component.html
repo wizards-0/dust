@@ -21,8 +21,38 @@
 
             <mat-form-field class="flex" id="proxyUrlInputField" appearance="outline">
                 <mat-label>Url</mat-label>
-                <input id="proxyUrlInput" matInput [formControl]="proxyUrlInput" class="flex overflow-hidden" />
+                <input id="proxyUrlInputText" matInput [formControl]="proxyUrlInput" class="flex overflow-hidden" />
             </mat-form-field>
+        </div>
+        <div id="versionFilterSection" class="flex flex-row items-start px-4 pt-4">
+            <mat-label class="flex items-start w-96 text-base text-on-surface items-center pb-5">
+                <span>Version Filter</span>
+                <button mat-icon-button #versionFilterTooltip="matTooltip" (click)="versionFilterTooltip.toggle()" color="primary"
+                    matTooltip="Versions in this list will be excluded from available options during dependency version selection.">
+                    <mat-icon class="text-primary">info</mat-icon>
+                </button>
+            </mat-label>
+            <div>
+                <div class="flex">
+                    <mat-form-field class="flex" id="versionFilterInputField" appearance="outline">
+                        <mat-label>Version</mat-label>
+                        <input id="versionFilterInputText" matInput [formControl]="versionFilterInput" class="flex overflow-hidden" />
+                    </mat-form-field>
+                    <span class="flex pt-2 pl-3">
+                        <button class="flex" mat-icon-button (click)="addVersionFilter()">
+                            <mat-icon class="bg-primary text-on-primary rounded-full">add</mat-icon>
+                        </button>
+                    </span>
+                </div>
+                @for(ver of versionBlackList | async; track ver; let versionFilterIndex = $index) {
+                    <div class="flex mat-elevation-z2 bg-surface-container rounded-lg items-center my-4">
+                        <span class="flex grow text-on-surface ml-2">{{ver}}</span>
+                        <button class="flex self-end" mat-icon-button (click)="deleteVersionFilter(versionFilterIndex)">
+                            <mat-icon class="bg-error text-on-error rounded-full">close</mat-icon>
+                        </button>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>

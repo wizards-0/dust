@@ -1,3 +1,4 @@
+import { jsonMatching } from '../../test/jasmine-matchers';
 import { MockedObjects } from '../../test/mocks/mocked-objects';
 import { Settings } from './settings';
 import { SettingsComponent } from './settings.component';
@@ -7,7 +8,7 @@ describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let settingsService: SettingsService;
   beforeEach(() => {
-    let settings = new Settings('dark', 'https://www.some.bs');
+    let settings = new Settings(SettingsService.CURRENT_SETTINGS_VERSION,'dark', 'https://www.some.bs',SettingsService.DEFAULT_BLACK_LISTED_VERSIONS);
     spyOn(localStorage, 'getItem')
       .and.returnValue(JSON.stringify(settings));
 
@@ -36,6 +37,7 @@ describe('SettingsComponent', () => {
     component.ngOnInit();
     expect(component.themeInput.value).toBe('dark');
     expect(component.proxyUrlInput.value).toBe('https://www.some.bs');
+    expect(component.versionBlackList.value).toEqual(SettingsService.DEFAULT_BLACK_LISTED_VERSIONS);
   });
 
   it('should subscribe to theme value changes on init', (done) => {
@@ -43,7 +45,12 @@ describe('SettingsComponent', () => {
     spyOn(component,'selectTheme');
     component.ngOnInit();
     component.themeInput.valueChanges.subscribe(() => {
-      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('light', 'https://www.some.bs'));
+      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings(
+        SettingsService.CURRENT_SETTINGS_VERSION,
+        'light',
+        'https://www.some.bs',
+        SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+      ));
       expect(component.selectTheme).toHaveBeenCalledOnceWith('light');
       done();
     });
@@ -55,23 +62,75 @@ describe('SettingsComponent', () => {
     spyOn(component,'selectTheme');
     component.ngOnInit();
     component.proxyUrlInput.valueChanges.subscribe(() => {
-      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark',  'mid'));
+      expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings(
+        SettingsService.CURRENT_SETTINGS_VERSION,
+        'dark',
+        'mid',
+        SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+      ));
       done();
     });
     component.proxyUrlInput.setValue('mid');
   });
 
-  it('should get save settings to local storage on change', () => {
+  it('should save settings to local storage on change', () => {
     spyOn(settingsService, 'updateSettings');
-    component.themeInput.setValue('dark');
-    component.proxyUrlInput.setValue('url')
-    component.updateSettings();
-    expect(settingsService.updateSettings).toHaveBeenCalledOnceWith(new Settings('dark', 'url'));
+    component.ngOnInit();
+
+    component.proxyUrlInput.setValue('url');    
+    expect(settingsService.updateSettings).toHaveBeenCalledWith(new Settings(
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'dark',
+      'url',
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+    ));
+
+    component.themeInput.setValue(undefined as any);    
+    expect(settingsService.updateSettings).toHaveBeenCalledWith(new Settings(
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'light',
+      'url',
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+    ));
+
+    component.proxyUrlInput.setValue(undefined as any);    
+    expect(settingsService.updateSettings).toHaveBeenCalledWith(new Settings(
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'light',
+      '',
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+    ));
   });
 
   it('should unsubscribe to all value change on destroy', () => {
     spyOn(component.subs,'unsubscribe');
     component.ngOnDestroy();
     expect(component.subs.unsubscribe).toHaveBeenCalled();
-  })
+  });
+
+  it('should be able to do add & delete version filters', () => {
+    spyOn(component.settingsService,'updateSettings');
+    component.ngOnInit();
+
+
+    component.versionFilterInput.setValue('');
+    component.addVersionFilter();
+    expect(component.settingsService.updateSettings).toHaveBeenCalledTimes(0);
+
+    component.versionFilterInput.setValue('pre');
+    component.addVersionFilter();
+    expect(component.settingsService.updateSettings).toHaveBeenCalledWith(new Settings(
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'dark', 'https://www.some.bs',
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS.push('pre')
+    ));
+
+    component.versionBlackList.next(SettingsService.DEFAULT_BLACK_LISTED_VERSIONS.push('pre'));
+    component.deleteVersionFilter(7);
+    expect(component.settingsService.updateSettings).toHaveBeenCalledWith(jsonMatching(new Settings(
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'dark', 'https://www.some.bs',
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+    )));
+  });
 });

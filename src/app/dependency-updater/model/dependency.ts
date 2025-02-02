@@ -8,20 +8,26 @@ export class Dependency implements ValueObject {
     public readonly name:string;
     public readonly currentVersion:string;
     public readonly updateVersion:string;
-    public readonly isUpToDate:boolean;
+    public readonly isSelected:boolean;
+    public readonly isUpdated:boolean;
+    public readonly isLatest:boolean;
     public readonly versions:List<Version>;
 
     constructor(
         name:string,
         currentVersion:string,
         updateVersion:string,
-        isUpToDate:boolean,
+        isSelected:boolean,
+        isUpdated:boolean,
+        isLatest:boolean,
         versions:List<Version>
     ) {
         this.name = name ?? '';
         this.currentVersion = currentVersion ?? '';
         this.updateVersion = updateVersion ?? '';
-        this.isUpToDate = isUpToDate ?? false;
+        this.isSelected = isSelected ?? false;
+        this.isUpdated = isUpdated ?? false;
+        this.isLatest = isLatest ?? false;
         this.versions = versions ?? List();
     }
 
@@ -34,7 +40,9 @@ export class Dependency implements ValueObject {
             .name('')
             .currentVersion('')
             .updateVersion('')
-            .isUpToDate(false)
+            .isSelected(false)
+            .isUpdated(false)
+            .isLatest(false)
             .versions(List())
         .build();
     }
@@ -43,14 +51,18 @@ export class Dependency implements ValueObject {
         const name:string = raw.name;
         const currentVersion:string = raw.currentVersion;
         const updateVersion:string = raw.updateVersion;
-        const isUpToDate:boolean = raw.isUpToDate;
+        const isSelected:boolean = raw.isSelected;
+        const isUpdated:boolean = raw.isUpdated;
+        const isLatest:boolean = raw.isLatest;
         const versions:List<Version> = !!raw.versions ? List(raw.versions.map( (item:any) => Version.fromRaw(item))) : List();
 
         return new Dependency(
             name,
             currentVersion,
             updateVersion,
-            isUpToDate,
+            isSelected,
+            isUpdated,
+            isLatest,
             versions
         );
     }
@@ -60,7 +72,9 @@ export class Dependency implements ValueObject {
         builder.name(this.name);
         builder.currentVersion(this.currentVersion);
         builder.updateVersion(this.updateVersion);
-        builder.isUpToDate(this.isUpToDate);
+        builder.isSelected(this.isSelected);
+        builder.isUpdated(this.isUpdated);
+        builder.isLatest(this.isLatest);
         builder.versions(this.versions);
         return builder;
     }
@@ -81,7 +95,11 @@ export class Dependency implements ValueObject {
             &&
             this.updateVersion === that.updateVersion
             &&
-            this.isUpToDate === that.isUpToDate
+            this.isSelected === that.isSelected
+            &&
+            this.isUpdated === that.isUpdated
+            &&
+            this.isLatest === that.isLatest
             &&
             equals(this.versions,that.versions)
             ;
@@ -92,7 +110,9 @@ export class Dependency implements ValueObject {
             this.name,
             this.currentVersion,
             this.updateVersion,
-            this.isUpToDate,
+            this.isSelected,
+            this.isUpdated,
+            this.isLatest,
             this.versions
         ]));
     }
@@ -102,7 +122,9 @@ export class DependencyBuilder {
     private _name:string = '';
     private _currentVersion:string = '';
     private _updateVersion:string = '';
-    private _isUpToDate:boolean = false;
+    private _isSelected:boolean = false;
+    private _isUpdated:boolean = false;
+    private _isLatest:boolean = false;
     private _versions:List<Version> = List();
 
     public build():Dependency {
@@ -110,7 +132,9 @@ export class DependencyBuilder {
             this._name,
             this._currentVersion,
             this._updateVersion,
-            this._isUpToDate,
+            this._isSelected,
+            this._isUpdated,
+            this._isLatest,
             this._versions
         );
     }
@@ -127,10 +151,18 @@ export class DependencyBuilder {
         this._updateVersion = updateVersion;
         return this;
     }
-    public isUpToDate(isUpToDate:boolean):DependencyBuilder {
-        this._isUpToDate = isUpToDate;
+    public isSelected(isSelected:boolean):DependencyBuilder {
+        this._isSelected = isSelected;
         return this;
-    }    
+    }
+    public isUpdated(isUpdated:boolean):DependencyBuilder {
+        this._isUpdated = isUpdated;
+        return this;
+    }
+    public isLatest(isLatest:boolean):DependencyBuilder {
+        this._isLatest = isLatest;
+        return this;
+    }
     public versions(versions:List<Version>):DependencyBuilder {
         this._versions = versions;
         return this;

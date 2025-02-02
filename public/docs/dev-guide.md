@@ -11,6 +11,15 @@ It watches for file changes, it will reload dev server on code changes.
 It will rebuild image for package.json changes
 - To shutdown dev server, run ```shutdown.sh``` for executing ```docker compose down``` and ```docker image prune -f```. Image prune is useful as dangling images might be created due to package.json changes
 
+### Local Services
+Following servers are brought up with ```npm run dev```
+
+|                                       |                                                   |
+| ------------------------------------- | ------------------------------------------------- |
+| Dev Server                            | http://localhost:4200/                            |
+| Dev Server with mock data             | http://localhost:4201/                            | 
+| Local CORS Proxy URL                  | http://localhost:3040/get?url=                    |
+
 ## Technical Details
 
 ### Tech Stack

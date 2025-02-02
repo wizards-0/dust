@@ -22,9 +22,9 @@ export function jsonMatching(jsonObject:any) {
             if(jsonObject.equals != undefined){
                 return jsonObject.equals(other);
               }else{
-                return matchersUtil.equals(jsonObject,other);
+                return JSON.stringify(jsonObject) == JSON.stringify(other);
               }
         },
-        jasmineToString: () => JSON.stringify(jsonObject)
+        jasmineToString: () => JSON.stringify(jsonObject,null,2)
     }
 }

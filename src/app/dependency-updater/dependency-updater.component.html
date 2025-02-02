@@ -20,6 +20,24 @@
                 <ace-button id="checkGradleBuildFile" class="mb-5 ml-2" color="primary" (click)="processBuildGradle()">Check</ace-button>
             </div>
            
+            @if(parseSucceeded) {
+            <div id="selectAllLatestSection" class="flex flex-row items-center top-divider p-4">
+                <mat-label class="flex w-96 text-base text-on-surface items-center">Update version for selected dependencies</mat-label>
+                <mat-form-field class="flex mt-4" id="buildGradleInputField" appearance="outline">
+                    <mat-label>Latest option</mat-label>
+                    <mat-select id="selectAllInput" [formControl]="selectAllInput">
+                        <mat-option [value]="0">Latest</mat-option>
+                        <mat-option [value]="1">2nd Latest</mat-option>
+                        <mat-option [value]="2">3rd Latest</mat-option>
+                        <mat-option [value]="3">4th Latest</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <ace-button id="copyGradleBuildFileButton" class="flex ml-2" color="primary" (click)="updatedDependenciesVersion()">
+                    <mat-icon>done_all</mat-icon>
+                </ace-button>
+            </div>
+            }
+
             @if(packageJsonParsed && parseSucceeded) {
             <div id="packageJsonDownloadSection" class="flex flex-row items-center top-divider p-4">
                 <mat-label class="flex flex-grow text-base text-on-surface items-center">Copy updated package json to clipboard</mat-label>

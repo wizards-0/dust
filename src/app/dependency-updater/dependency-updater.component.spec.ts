@@ -2,12 +2,12 @@
 import { List } from 'immutable';
 import { MockedObjects } from '../../test/mocks/mocked-objects';
 
-import { DependencyUpdaterComponent, getVersionWithRelativeDownloads } from './dependency-updater.component';
+import { DependencyUpdaterComponent, getVersionPrefix, getVersionWithRelativeDownloads, matchVersion } from './dependency-updater.component';
 import { Version } from './model/version';
 import { Dependency } from './model/dependency';
-import { DateTime } from 'luxon';
 import { AlertCategory } from 'ace-common-components';
 import { of } from 'rxjs';
+import { jsonMatching } from '../../test/jasmine-matchers';
 
 describe('DependencyUpdaterComponent', () => {
   let component: DependencyUpdaterComponent;
@@ -168,5 +168,62 @@ describe('DependencyUpdaterComponent', () => {
     expect(component.parseSucceeded).toBeTrue();
     expect(component.dependenciesDataSource.value).toEqual(depsList);
     expect(component.pluginDependenciesDataSource.value).toEqual(depsList);
+  });
+
+  it('should be able to select latest version for all dependencies', () => {
+    let versions = List([
+      Version.builder().version('5.1.2').downloads(31).build(),
+      Version.builder().version('4.1.2').downloads(41).build(),
+      Version.builder().version('4.0.2').downloads(21).build(),
+      Version.builder().version('3.5.16').downloads(11).build()          
+    ]);
+    let depsList = List([
+      Dependency.builder().name('d1').currentVersion('5.1.2').versions(versions).build(),
+      Dependency.builder().name('d2').currentVersion('^5.1.2').versions(versions).build(),
+      Dependency.builder().name('d3').currentVersion('~3.5.16').versions(versions).build(),
+      Dependency.builder().name('d4').currentVersion('1.0.0').versions(versions).build()
+    ]);
+    component.dependenciesDataSource.next(depsList);
+
+    component.updatedDependenciesVersion();
+
+    expect(component.dependenciesDataSource.value).toEqual(jsonMatching(List([
+      Dependency.builder().name('d1').currentVersion('5.1.2').versions(versions).build(),
+      Dependency.builder().name('d2').currentVersion('^5.1.2').versions(versions).build(),
+      Dependency.builder().name('d3').currentVersion('~3.5.16').updateVersion('~5.1.2').isUpdated(true).versions(versions).build(),
+      Dependency.builder().name('d4').currentVersion('1.0.0').updateVersion('5.1.2').isUpdated(true).versions(versions).build()
+    ])));
+  });
+
+  it('should be able to identify if current or update version is present in list of available versions', ()=>{
+
+    expect(matchVersion(
+      Dependency.builder().name('d1').currentVersion('^1.1.0').build(),
+      Version.builder().version('1.1.0').build()
+    )).toBeTrue();
+
+    expect(matchVersion(
+      Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build(),
+      Version.builder().version('1.1.0').build()
+    )).toBeFalse();
+
+    expect(matchVersion(
+      Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build(),
+      Version.builder().version('^2.0.0').build()
+    )).toBeFalse();
+
+    expect(matchVersion(
+      Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build(),
+      Version.builder().version('2.0.0').build()
+    )).toBeTrue();
+  });
+
+  it('should be able to identify simple prefix for node semver, return empty for others', () => {
+    expect(getVersionPrefix('^1.0.0')).toBe('^');
+    expect(getVersionPrefix('1.0.0')).toBe('');
+
+    expect(getVersionPrefix('1.1-RELEASE')).toBe('');
+
+    expect(getVersionPrefix('--')).toBe('');
   });
 });

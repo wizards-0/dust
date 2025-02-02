@@ -12,7 +12,9 @@ describe('Dependency', () => {
                             .name('')
                             .currentVersion('')
                             .updateVersion('')
-                            .isUpToDate(false)
+                            .isSelected(false)
+                            .isUpdated(false)
+                            .isLatest(false)
                             .versions(List())
                             .build();
         expect(emptyObject1.equals(emptyObject2)).toBeTrue();
@@ -21,7 +23,7 @@ describe('Dependency', () => {
         expect(randomValue.equals(randomValueClone)).toBeTrue();
         expect(randomValue.hashCode()).toBe(randomValueClone.hashCode());
         expect(Dependency.fromRaw({})).toEqual(Dependency.empty());
-        expect(new Dependency(undefined as any,undefined as any,undefined as any,undefined as any,undefined as any)).toEqual(Dependency.empty());
+        expect(new Dependency(undefined as any,undefined as any,undefined as any,undefined as any,undefined as any,undefined as any,undefined as any)).toEqual(Dependency.empty());
     });
 
     it('should be able to compare same type objects', () => {
@@ -43,9 +45,14 @@ describe('Dependency', () => {
         o1 = Dependency.empty().toBuilder().updateVersion(Math.random()+'').build();
         o2 = Dependency.empty().toBuilder().updateVersion(Math.random()+'').build();
         expect(o1.equals(o2)).toBeFalse();
-        o1 = Dependency.empty().toBuilder().isUpToDate(true).build();
-        o2 = Dependency.empty().toBuilder().isUpToDate(false).build();
+        o1 = Dependency.empty().toBuilder().isSelected(true).build();
+        o2 = Dependency.empty().toBuilder().isSelected(false).build();
         expect(o1.equals(o2)).toBeFalse();
+        o1 = Dependency.empty().toBuilder().isUpdated(true).build();
+        o2 = Dependency.empty().toBuilder().isUpdated(false).build();
+        expect(o1.equals(o2)).toBeFalse();
+        o1 = Dependency.empty().toBuilder().isLatest(true).build();
+        o2 = Dependency.empty().toBuilder().isLatest(false).build();
         expect(o1.equals(o2)).toBeFalse();
         o1 = Dependency.empty().toBuilder().versions(List([getRandomVersion()])).build();
         o2 = Dependency.empty().toBuilder().versions(List([getRandomVersion()])).build();
@@ -53,12 +60,16 @@ describe('Dependency', () => {
     });
 });
 
+let isEven = false;
 export function getRandomDependency():Dependency {
+    isEven = !isEven;
     return Dependency.builder()
         .name(Math.random()+'')
         .currentVersion(Math.random()+'')
         .updateVersion(Math.random()+'')
-        .isUpToDate(( Math.round(Math.random() * 10000) ) % 2 == 0)
+        .isSelected(isEven)
+        .isUpdated(isEven)
+        .isLatest(isEven)
         .versions(List([getRandomVersion()]))
     .build();
 }

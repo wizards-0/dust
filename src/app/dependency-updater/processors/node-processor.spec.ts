@@ -25,7 +25,7 @@ describe('NodeProcessor', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    nodeProcessor = new NodeProcessor(mocks.apiService);
+    nodeProcessor = new NodeProcessor(mocks.apiService,mocks.settingsService);
   });
 
   it('should be able to map tags to version', () => {
@@ -42,33 +42,46 @@ describe('NodeProcessor', () => {
     }));
   });
 
-  it('should be able to add latest tag if missing', () => {
+  it('should be able to add latest tag, last updated version if missing', () => {
     let top10Downloads = List([
       Version.builder().version('3.5.16').downloads(11).build()
     ]);
     let downloadInfo = List([
       Version.builder().version('3.5.16').downloads(11).build(),
-      Version.builder().version('4.0.2').downloads(21).build()
+      Version.builder().version('4.0.2').downloads(21).build(),
+      Version.builder().version('5.0.1').downloads(5).build()
     ]);
 
-    let result = nodeProcessor.withLatestVersion(top10Downloads, '4.0.2', downloadInfo);
+    let result = nodeProcessor.withLatestVersions(top10Downloads, '4.0.2','5.0.1', downloadInfo);
+    expect(result).toEqual(jsonMatching(List([
+      Version.builder().version('3.5.16').downloads(11).build(),
+      Version.builder().version('4.0.2').downloads(21).build(),
+      Version.builder().version('5.0.1').downloads(5).build()
+    ])));
 
+    result = nodeProcessor.withLatestVersions(top10Downloads, '4.0.2','4.0.2', downloadInfo);
     expect(result).toEqual(jsonMatching(List([
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build()
     ])));
 
-    result = nodeProcessor.withLatestVersion(top10Downloads, undefined as any, downloadInfo);
-
+    result = nodeProcessor.withLatestVersions(top10Downloads, '3.5.16','4.0.2', downloadInfo);
     expect(result).toEqual(jsonMatching(List([
-      Version.builder().version('3.5.16').downloads(11).build()
+      Version.builder().version('3.5.16').downloads(11).build(),
+      Version.builder().version('4.0.2').downloads(21).build()
+    ])));
+
+    result = nodeProcessor.withLatestVersions(top10Downloads, undefined,'4.0.2', downloadInfo);
+    expect(result).toEqual(jsonMatching(List([
+      Version.builder().version('3.5.16').downloads(11).build(),
+      Version.builder().version('4.0.2').downloads(21).build()
     ])));
 
     top10Downloads = List([
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build()
     ]);
-    result = nodeProcessor.withLatestVersion(top10Downloads, '4.0.2', downloadInfo);
+    result = nodeProcessor.withLatestVersions(top10Downloads, '4.0.2','4.0.2', downloadInfo);
 
     expect(result).toEqual(List([
       Version.builder().version('3.5.16').downloads(11).build(),
@@ -79,12 +92,13 @@ describe('NodeProcessor', () => {
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build()
     ]);
-    result = nodeProcessor.withLatestVersion(top10Downloads, '4.1.2', downloadInfo);
+    result = nodeProcessor.withLatestVersions(top10Downloads, '4.1.2','5.1.2', downloadInfo);
 
     expect(result).toEqual(jsonMatching(List([
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build(),
-      Version.builder().version('4.1.2').build()
+      Version.builder().version('4.1.2').build(),
+      Version.builder().version('5.1.2').build()
     ])));
   });
 
@@ -288,12 +302,12 @@ describe('NodeProcessor', () => {
       Version.builder().version('4.3.6').downloads(21).relativeDownloads(100).publishDate(-1).tag('').build()
     ]);
     let deps = List([
-      Dependency.builder().name('immutable').currentVersion('4.3.6').updateVersion('4.5.7').isUpToDate(true).versions(versions).build(),
-      Dependency.builder().name('rxjs').currentVersion('5.4.2').updateVersion('5.4.2').isUpToDate(true).versions(versions).build(),
+      Dependency.builder().name('immutable').currentVersion('4.3.6').updateVersion('4.5.7').isUpdated(true).versions(versions).build(),
+      Dependency.builder().name('rxjs').currentVersion('5.4.2').updateVersion('5.4.2').isUpdated(true).versions(versions).build(),
       Dependency.builder().name('zone.js').currentVersion('7.8.5').versions(versions).build()
     ]);
     let devDeps = List([
-      Dependency.builder().name('typescript').currentVersion('4.0.2').updateVersion('4.0.2').isUpToDate(true).versions(versions).build(),
+      Dependency.builder().name('typescript').currentVersion('4.0.2').updateVersion('4.0.2').isUpdated(true).versions(versions).build(),
       Dependency.builder().name('webpack').currentVersion('11.4.3').versions(List([])).build()
     ]);
 

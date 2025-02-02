@@ -21,7 +21,7 @@ describe('GradleProcessor', () => {
 
   beforeEach(() => {
     mocks = new MockedObjects();
-    gradleProcessor = new GradleProcessor(mocks.apiService);
+    gradleProcessor = new GradleProcessor(mocks.apiService,mocks.settingsService);
   });
 
   it('should parse build file into relavant parts', () => {

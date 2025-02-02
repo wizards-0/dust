@@ -60,38 +60,19 @@ describe('DependencyUpdateSelectorComponent', () => {
     component.updateDependencyVersion(0);
     let dep = component.dataSource.value.get(0,Dependency.empty());
     expect(dep.updateVersion).toBe('v2');
-    expect(dep.isUpToDate).toBeTrue();
+    expect(dep.isUpdated).toBeTrue();
 
     expect(component.dataSource.value.get(1)?.updateVersion).toBeFalsy();
   });
 
-  it('should be able to identify simple prefix for node semver, return empty for others', () => {
+  it('should provide getVersionPrefix in component', () => {
     expect(component.getVersionPrefix('^1.0.0')).toBe('^');
-    expect(component.getVersionPrefix('1.0.0')).toBe('');
-
-    expect(component.getVersionPrefix('1.1-RELEASE')).toBe('');
   });
 
-  it('should be able to identify if current or update version is present in list of available versions', ()=>{
-
+  it('should match version in component', ()=>{
     expect(component.matchVersion(
       Dependency.builder().name('d1').currentVersion('^1.1.0').build(),
       Version.builder().version('1.1.0').build()
-    )).toBeTrue();
-
-    expect(component.matchVersion(
-      Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build(),
-      Version.builder().version('1.1.0').build()
-    )).toBeFalse();
-
-    expect(component.matchVersion(
-      Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build(),
-      Version.builder().version('^2.0.0').build()
-    )).toBeFalse();
-
-    expect(component.matchVersion(
-      Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build(),
-      Version.builder().version('2.0.0').build()
     )).toBeTrue();
   });
 
@@ -99,14 +80,14 @@ describe('DependencyUpdateSelectorComponent', () => {
     let event:any = {stopPropagation:()=>{}};
     spyOn(event,'stopPropagation');
     let dep = Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build()
-    component.selectDependency(dep,event);
+    component.toggleDependencyDetails(dep,event);
 
     expect(component.currentDependency).toEqual(dep);
     expect(component.updateVersionTemp.value).toBe('2.0.0');
     expect(event.stopPropagation).toHaveBeenCalledTimes(1);
 
     dep = Dependency.builder().name('d2').currentVersion('^1.1.0').build()
-    component.selectDependency(dep,event);
+    component.toggleDependencyDetails(dep,event);
     expect(component.updateVersionTemp.value).toBe('^1.1.0');
   });
 
@@ -115,7 +96,7 @@ describe('DependencyUpdateSelectorComponent', () => {
     spyOn(event,'stopPropagation');
     let dep = Dependency.builder().name('d1').currentVersion('^1.1.0').updateVersion('2.0.0').build()
     component.currentDependency = dep;
-    component.selectDependency(dep,event);
+    component.toggleDependencyDetails(dep,event);
 
     expect(component.currentDependency).toBeFalsy();
     expect(component.updateVersionTemp.value).toBeFalsy();

@@ -7,12 +7,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SettingsService } from './settings.service';
 import { Settings } from './settings';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { List } from 'immutable';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
     selector: 'app-settings',
-    imports: [ReactiveFormsModule, MatTooltipModule, MatFormFieldModule, MatIconModule, MatButtonModule, MatRadioModule, MatInputModule],
+    imports: [ReactiveFormsModule, MatTooltipModule, MatFormFieldModule, MatIconModule, MatButtonModule, MatRadioModule, MatInputModule,AsyncPipe],
     templateUrl: './settings.component.html',
     host: { class: 'flex basis-full w-full h-full' },
     styleUrl: './settings.component.scss',
@@ -22,9 +24,11 @@ export class SettingsComponent implements OnInit,OnDestroy {
 
   themeInput = new FormControl<string>('');
   proxyUrlInput = new FormControl<string>('');
+  versionFilterInput = new FormControl<string>('');
+  versionBlackList:BehaviorSubject<List<string>> = new BehaviorSubject(List());
   subs = new Subscription();
 
-  constructor(private readonly settingsService:SettingsService) {
+  constructor(public readonly settingsService:SettingsService) {
     
   }
   ngOnDestroy(): void {
@@ -34,6 +38,7 @@ export class SettingsComponent implements OnInit,OnDestroy {
   ngOnInit(): void {
     this.themeInput.setValue(this.settingsService.getSettings().theme);
     this.proxyUrlInput.setValue(this.settingsService.getSettings().corsProxy);
+    this.versionBlackList.next(this.settingsService.getSettings().versionBlackList);
     this.subs.add(this.themeInput.valueChanges.subscribe(() => {
       this.selectTheme(this.themeInput.value ?? 'light');
       this.updateSettings();
@@ -54,8 +59,24 @@ export class SettingsComponent implements OnInit,OnDestroy {
   updateSettings(){
     this.settingsService.updateSettings(
       new Settings(
-        this.themeInput.value,
-        this.proxyUrlInput.value
+        SettingsService.CURRENT_SETTINGS_VERSION,
+        this.themeInput.value ?? 'light',
+        this.proxyUrlInput.value ?? '',
+        this.versionBlackList.getValue()
       ));
   }
+
+  addVersionFilter() {
+    if(this.versionFilterInput.value) {
+      let updatedFilterList = this.versionBlackList.getValue().push(this.versionFilterInput.value);      
+      this.versionBlackList.next(updatedFilterList);
+      this.updateSettings();
+    }
+  }
+  deleteVersionFilter(versionFilterIndex:number) {
+    let updatedFilterList = this.versionBlackList.getValue().delete(versionFilterIndex);
+    this.versionBlackList.next(updatedFilterList);
+    this.updateSettings();
+  }
+
 }

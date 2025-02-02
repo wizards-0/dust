@@ -14,5 +14,5 @@ app.get('/get', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`CORS Proxy started on port ${port}`)
+  console.info(`CORS Proxy started on port ${port}`)
 });

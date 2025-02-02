@@ -579,7 +579,7 @@ This option will work, but its not very reliable, and it incurs cost to the prov
 ---`,
     test: async (page: Page, context: BrowserContext) => {
         await page.goto('http://localhost:4200/#/settings');
-        await page.locator('input#proxyUrlInput').fill('');
+        await page.locator('input#proxyUrlInputText').fill('');
         await page.goto('http://localhost:4200/#/home');
         let buildGradle = `
 plugins {
@@ -595,7 +595,7 @@ dependencies {
         await expect(page.locator(`#${PLUGIN_DEPENDENCIES_ID}-versionsTable-0`)).not.toBeVisible();
 
         await page.goto('http://localhost:4200/#/settings');
-        await page.locator('input#proxyUrlInput').fill('http://localhost:3040/get?url=');
+        await page.locator('input#proxyUrlInputText').fill('http://localhost:3040/get?url=');
 
         await page.goto('http://localhost:4200/#/home');
         await submitGradleFile(page, buildGradle);

@@ -39,8 +39,8 @@ export class MockedObjects {
         this.httpClient = new HttpClientMock() as any;
         this.settingsService = new SettingsService();
         this.apiService = new ApiService(this.httpClient,this.settingsService);
-        this.nodeProcessor = new NodeProcessor(this.apiService);
-        this.gradleProcessor = new GradleProcessor(this.apiService);
+        this.nodeProcessor = new NodeProcessor(this.apiService,this.settingsService);
+        this.gradleProcessor = new GradleProcessor(this.apiService,this.settingsService);
         this.domSanitizer = new DomSanitizerMock();
     }
 
