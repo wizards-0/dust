@@ -32,7 +32,7 @@ export class DependencyUpdaterComponent {
   packageJson: any;
   packageJsonInput = new FormControl<string>('');
   gradleFileInput = new FormControl<string>('');
-  selectAllInput = new FormControl<number>(0);
+  latestOptionInput = new FormControl<number>(0);
 
   buildFileReceived = false;
   packageJsonParsed = false;
@@ -148,24 +148,31 @@ export class DependencyUpdaterComponent {
   }
 
   updatedDependenciesVersion(){
-    this.selectLatestForDataSource(this.dependenciesDataSource);
-    this.selectLatestForDataSource(this.devDependenciesDataSource);
-    this.selectLatestForDataSource(this.pluginDependenciesDataSource);
-    this.alertService.show('Dependencies updated.',AlertCategory.success,2000);
+    let dependencyModifyCount = this.selectLatestForDataSource(this.dependenciesDataSource);
+    let devDependencyModifyCount = this.selectLatestForDataSource(this.devDependenciesDataSource);
+    let pluginModifyCount = this.selectLatestForDataSource(this.pluginDependenciesDataSource);
+    if(dependencyModifyCount+devDependencyModifyCount+pluginModifyCount == 0) {
+      this.alertService.show('No dependencies selected.',AlertCategory.info,2000);
+    } else {
+      this.alertService.show('Dependencies updated.',AlertCategory.success,2000);
+    }    
   }
 
-  selectLatestForDataSource(dataSource:BehaviorSubject<List<Dependency>>){
-    let latestIndex = this.selectAllInput.value ?? 0;
+  selectLatestForDataSource(dataSource:BehaviorSubject<List<Dependency>>):number {
+    let modifyCount = 0;
+    let latestIndex = this.latestOptionInput.value ?? 0;
     let updatedDependencies = dataSource.value.map(dep => 
       dep.isSelected && !matchVersion(dep,dep.versions.get(latestIndex,Version.empty()))
-      ? dep.with(depMut => {      
+      ? dep.with(depMut => {   
+        modifyCount++;   
         let updateVersion = getVersionPrefix(dep.currentVersion) + dep.versions.get(latestIndex,Version.empty()).version
         depMut.updateVersion( updateVersion );
         depMut.isUpdated(true);
         depMut.isLatest(latestIndex == 0)      
       }) : dep
-  );
+    );
     dataSource.next(updatedDependencies);
+    return modifyCount;
   }
 
 }

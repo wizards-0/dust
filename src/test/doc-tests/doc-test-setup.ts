@@ -8,7 +8,7 @@ setup('Initialize settings', async ({ page }) => {
   await page.goto('/');
   await page.locator('button#settingsRouteButton').click();
   await page.locator('mat-radio-button[value="dark"]').click();
-  await page.locator('input#proxyUrlInput').fill('http://localhost:3040');
+  await page.locator('input#proxyUrlInputText').fill('http://localhost:3040');
   await page.locator('button#homeRouteButton').click();
   await page.context().storageState({ path: setupStateFile });
 });

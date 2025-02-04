@@ -119,6 +119,7 @@ describe('GradleProcessor', () => {
           { "version": "v1", "dependencyOfCount": 21, "publishedEpochMillis": toMillis("2014-03-24"), "ossIndexInfo": { "vulnerabilityCount": 2 } },
           { "version": "v2", "dependencyOfCount": 11, "publishedEpochMillis": toMillis("2014-09-21"), "ossIndexInfo": { "vulnerabilityCount": null } },
           { "version": "v3", "dependencyOfCount": 5, "publishedEpochMillis": toMillis("2015-04-11"), "ossIndexInfo": {} },
+          { "version": "v4-beta", "dependencyOfCount": 5, "publishedEpochMillis": toMillis("2015-04-11"), "ossIndexInfo": {} }
         ]
       }));
     let deps = List([
@@ -141,7 +142,7 @@ describe('GradleProcessor', () => {
       .withArgs('info.solidsoft.pitest').and.returnValue(of({
         metadata: {
           versioning: {
-            versions: { version: ["v1", "v2", "v3"] },
+            versions: { version: ["v1", "v2", "v3", "v4-dev"] },
             lastUpdated: 20140324154555
           }
         }
@@ -267,7 +268,7 @@ describe('GradleProcessor', () => {
     expect(result).toEqual(buildFile);
   });
 
-  it('should be able to generate updated build file with update version & replace dependency updated on section', () => {
+  it('should be able to generate updated build file with update version', () => {
     let buildFile = 
 `
 

@@ -265,10 +265,12 @@ Dependency List has following columns which are common to Node & Gradle
 
 | Column Name       | Purpose                                                           |
 |-------------------|-------------------------------------------------------------------|
+| Select            | Multi select dependencies for updating version in bulk            |
 | Name              | Name of the dependency                                            |
 | Current Version   | Version present in the current build file                         |
 | Update Version    | Version which will be used in updated file                        |
 | Updated           | Shows a check mark if a version was selected for that dependency to track progress |
+| Latest            | Shows a check mark if current version matches the latest version from relevant versions. Related **[Relevant Versions](/user-guide?id=relevant-versions)** |
 | Versions          | Each row has an expand icon, which can be clicked to see version details |
 
 ---`,
@@ -280,6 +282,7 @@ Dependency List has following columns which are common to Node & Gradle
             for (let columnName of columns) {
                 await expect(page.locator(`//th[contains(text(), "${columnName}")]`)).toHaveCount(2);
             }
+            await expect(page.locator(`//table[contains(@id,"dependencyListTable")]/thead/tr/th`)).toHaveCount((columns.length + 1) * 2);
         };
 
         let testNodeColumns = async (page: Page) => {
@@ -293,7 +296,7 @@ Dependency List has following columns which are common to Node & Gradle
             }
             await submitPackageJson(page, packageJson);
             await waitForDependenciesToLoad(page);
-            await verifyColumns(page, ['Name', 'Current Version', 'Update Version', 'Updated', 'Versions']);
+            await verifyColumns(page, ['Name', 'Current Version', 'Update Version', 'Updated', 'Latest', 'Versions']);
         };
 
         let testGradleColumns = async (page: Page) => {
@@ -306,7 +309,7 @@ dependencies {
 }`;
             await submitGradleFile(page, buildGradle);
             await waitForDependenciesToLoad(page);
-            await verifyColumns(page, ['Name', 'Current Version', 'Update Version', 'Updated', 'Versions']);
+            await verifyColumns(page, ['Name', 'Current Version', 'Update Version', 'Updated', 'Latest', 'Versions']);
         };
 
         await testNodeColumns(page);
@@ -337,7 +340,7 @@ Dependency versions have slight differences between build systems, as their repo
             }
             await submitPackageJson(page, packageJson);
             await waitForDependenciesToLoad(page);
-            await verifyVersionCount(page, 22);
+            await verifyVersionCount(page, 20);
         };
 
         let testGradleVersions = async (page: Page) => {
@@ -350,7 +353,7 @@ dependencies {
 }`;
             await submitGradleFile(page, buildGradle);
             await waitForDependenciesToLoad(page);
-            await verifyVersionCount(page, 21);
+            await verifyVersionCount(page, 20);
         };
 
         await testNodeVersions(page);
@@ -379,7 +382,7 @@ const nodeDependencyVersionTest = {
             for (let columnName of columns) {
                 await expect(page.locator(`//th[contains(text(), "${columnName}") and contains(@class,"version-detail-header")]`)).toHaveCount(2);
             }
-            await expect(page.locator(`//th[contains(@class,"version-detail-header")]`)).toHaveCount((columns.length + 1) * 2);
+            await expect(page.locator(`//table[contains(@id,"versionsTable")]/thead/tr/th`)).toHaveCount((columns.length + 1) * 2);
         };
 
         let packageJson = {
@@ -417,7 +420,7 @@ const gradleDependencyVersionTest = {
             for (let columnName of columns) {
                 await expect(page.locator(`//th[contains(text(), "${columnName}") and contains(@class,"version-detail-header")]`)).toHaveCount(2);
             }
-            await expect(page.locator(`//th[contains(@class,"version-detail-header")]`)).toHaveCount((columns.length + 1) * 2);
+            await expect(page.locator(`//table[contains(@id,"versionsTable")]/thead/tr/th`)).toHaveCount((columns.length + 1) * 2);
         };
 
         let buildGradle = `
@@ -438,17 +441,17 @@ const dependencyVersionSelectionTest = {
     title: 'Dependency Version Selection',
     doc: `
 #### Version Selection
-After expanding dependency, a sub grid with relevant versions will be displayed. Select the radio button with desired version to initiate selection.
+After expanding dependency, a sub grid with **[Relevant Versions](/user-guide?id=relevant-versions)** will be displayed.
+Select the radio button with desired version to initiate selection.
 This version will be populated in the text box above grid, this is done to provide option for manual edits if required.
 When selecting a new version, If the existing version had identifiable **[prefix*](/user-guide?id=version-prefix)**,
 it is automatically added to the new version. This is done as it is the most common way to describe versions in node.
 Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
 
-Text Box can also be used to specify version for local dependencies manually.
+Text Box can also be used to specify version manually, when versions are not available from APIs or they are absent in version grid.
 Click on select button after confirming the version is in text box, to complete version selection.
 Sub grid will auto collapse on clicking select to speed up the process.
-Dependency will have update version populated in main grid 
-and it will be marked with green check to track progress.
+Dependency will have update version populated in main grid and it will be marked with green check to track progress.
 
 ---`,
     test: async (page: Page, context: BrowserContext) => {
@@ -480,6 +483,23 @@ and it will be marked with green check to track progress.
     }
 }
 
+
+const relevantVersionsTest = {
+    title: 'Dependency Relevant Versions',
+    doc: `
+#### Relevant Versions
+Download stats is used to figure out relevant versions. Top 10 downloaded versions along with last updated version and version with "latest" tag if present are selected.
+For calculating both top 10 downloads and latest version, **[Version Filter](/user-guide?id=version-filter)** is taken into consideration.
+Versions having filter keyword in them will be filtered first, then rest of the operations will be performed. Namely figuring out top 10 and latest.
+Number of versions are restricted to remove clutter. Most of the time desired version will be present in Top 10 most downloaded versions.
+
+---`,
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        await checkVersionExists(page,'22-beta',false);
+    }
+}
+
 const versionPrefixTest = {
     title: 'Dependency Version Prefix',
     doc: `
@@ -505,6 +525,80 @@ If version is in format \`\`\`[symbols][wordChar][anything]\`\`\`, then symbols 
 
         await selectDependencyVersion(page, DEV_DEPENDENCIES_ID, 0, 0);
         await expect(page.locator(`td#${DEV_DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('21');
+    }
+}
+
+
+const multiUpdateTest = {
+    title: 'Multi Update',
+    doc: `
+### Multi Update
+This can update multiple dependencies to latest version. By default, this will apply latest version to selected dependencies.
+If latest version is very new / unstable, 2nd 3rd or 4th latest version can be selected from dropdown.
+If unwanted versions are showing up as latest, **[Version Filter](/user-guide?id=version-filter)** can be utilized to exclude them.
+If no dependencies are selected, this operation will do nothing
+
+---`,
+    test: async (page: Page, context: BrowserContext) => {
+        await page.goto('/');
+        let packageJson = {
+            "dependencies": {
+                "immutable": "^18",
+                "rxjs": "~16",
+                "tslib": "21"
+            },
+            "devDependencies": {
+                "typescript": "18"
+            }
+        }
+        await submitPackageJson(page, packageJson);
+        await waitForDependenciesToLoad(page);
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-2`)).toBeVisible();
+
+        await page.locator(`#${DEPENDENCIES_ID}-selectAllCheckBox`).click();
+        await page.locator('#multiUpdateDependenciesButton').click();
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('^21');
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-1`)).toHaveText('~21');
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-2`)).toHaveText(/\s*/);
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-0`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-1`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-2`)).not.toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-0`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-1`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-2`)).toBeVisible();
+
+        await page.locator(`#${DEPENDENCIES_ID}-selectDependencyCheckBox-1`).click();
+        await page.locator('#latestOptionSelect').click();
+        await page.getByText('2nd Latest').click();
+        await page.locator('#multiUpdateDependenciesButton').click();
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('^20');
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-1`)).toHaveText('~21');
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-2`)).toHaveText('20');
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-0`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-1`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-2`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-0`)).not.toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-1`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-2`)).not.toBeVisible();
+
+        await page.locator(`#${DEPENDENCIES_ID}-selectAllCheckBox`).click();
+        await page.locator('#latestOptionSelect').click();
+        await page.getByText('3rd Latest').click();
+        await page.locator('#multiUpdateDependenciesButton').click();
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-0`)).toHaveText('^19');
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-1`)).toHaveText('~19');
+        await expect(page.locator(`td#${DEPENDENCIES_ID}-updateVersion-2`)).toHaveText('19');
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-0`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-1`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-updatedIndicator-2`)).toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-0`)).not.toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-1`)).not.toBeVisible();
+        await expect(page.locator(`mat-icon#${DEPENDENCIES_ID}-latestIndicator-2`)).not.toBeVisible();
+        await (expect(page.getByText('Dependencies updated.').first())).toBeVisible();
+
+        await page.locator(`#${DEPENDENCIES_ID}-selectAllCheckBox`).click();
+        await page.locator('#multiUpdateDependenciesButton').click();
+        await (expect(page.getByText('No dependencies selected.'))).toBeVisible();
     }
 }
 
@@ -551,14 +645,15 @@ const settingsTest = {
     title: 'Settings',
     doc: `
 ## Settings
-Settings allows you to specify color scheme, and CORS proxy Url.
+Settings allows you to specify color scheme, CORS proxy Url and Version Filter.
 
 ---`,
     test: async (page: Page, context: BrowserContext) => {
         await page.goto('/#/settings');
         await expect(page.getByText('Color Scheme')).toBeVisible();
         await expect(page.getByText('Cors Proxy', { exact: true })).toBeVisible();
-        await expect(page.locator('mat-label')).toHaveCount(3);
+        await expect(page.getByText('Version Filter')).toBeVisible();
+        await expect(page.locator('mat-label')).toHaveCount(5);
     }
 }
 
@@ -602,6 +697,39 @@ dependencies {
         await waitForDependenciesToLoad(page);
         await toggleDependency(page,PLUGIN_DEPENDENCIES_ID,0);
         await expect(page.locator(`#${PLUGIN_DEPENDENCIES_ID}-versionsTable-0`)).toBeVisible();
+    }
+}
+
+const versionFilterTest = {
+    title: 'Settings Version Filter',
+    doc: `
+### Version Filter
+Version filter allows you to specify keywords for excluding versions.Filter is used to perform a contains check and not an exact match.
+So all versions, having any of the filter strings in them will be excluded from version details grid.
+This feature is mostly useful when you want to keep dependencies at latest version, but do not want to use beta versions.
+This can ensure the top version is a stable one, allowing you to bulk select latest version for all dependencies.
+Also the tracker column indicating if the dependency is on latest version becomes more useful.
+
+---`,
+    test: async (page: Page, context: BrowserContext) => {        
+
+        let excludeVersion = async (page: Page,version:string) => {
+            await page.goto('/#/settings');
+            await page.locator('input#versionFilterInputText').fill(version);
+            await page.locator('#addVersionFilterButton').click();            
+        }
+
+        let removeVersionExclusion = async (page: Page,version:string) => {
+            await page.goto('/#/settings');            
+            await page.locator(`//div/span[contains(text(),"${version}")]/../button`).click();            
+        }
+
+        let version = '21';
+        await excludeVersion(page,version);
+        await checkVersionExists(page,version,false);
+
+        await removeVersionExclusion(page,version);
+        await checkVersionExists(page,version,true);
     }
 }
 
@@ -659,6 +787,35 @@ async function verifyDependencyTypeIsNotVisible(page: Page, dependencyType: stri
     await expect(page.locator(`#${dependencyType}-dependencyListTable`)).not.toBeVisible();
 }
 
+async function checkVersionExists(page: Page,version:string,shouldExist:boolean) {
+    await page.goto('/');
+
+    let packageJson = {
+        "dependencies": {
+            "tslib": "^19"
+        },
+        "devDependencies": {
+            "typescript": "18"
+        }
+    }
+    await submitPackageJson(page, packageJson);
+    await waitForDependenciesToLoad(page);
+    await toggleDependency(page,DEPENDENCIES_ID,0);            
+    await expect(page.locator(`//td[contains(@id,"versionCell") and contains(text(),"${version}")]`)).toHaveCount(shouldExist ? 2 : 0);
+
+    let buildGradle = `
+        plugins {
+            id 'org.springframework.boot' version '2.7.1'
+        }
+        dependencies {
+            implementation 'com.google.guava:guava:28.1-jre'
+        }`;
+    await submitGradleFile(page, buildGradle);
+    await waitForDependenciesToLoad(page);
+    await toggleDependency(page,DEPENDENCIES_ID,0);            
+    await expect(page.locator(`//td[contains(@id,"versionCell") and contains(text(),"${version}")]`)).toHaveCount(shouldExist ? 2 : 0);
+}
+
 
 const userGuideDocTests = {
     path: '/user-guide.md',
@@ -672,10 +829,13 @@ const userGuideDocTests = {
         nodeDependencyVersionTest,
         gradleDependencyVersionTest,
         dependencyVersionSelectionTest,
+        relevantVersionsTest,
         versionPrefixTest,
+        multiUpdateTest,
         outputTest,
         settingsTest,
-        settingsProxyUrlTest
+        settingsProxyUrlTest,
+        versionFilterTest
     ]
 }
 

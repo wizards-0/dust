@@ -16,7 +16,8 @@ export class SettingsService {
         'rc',
         'candidate',
         'insider',
-        'next'
+        'next',
+        'dev'
     ]);
 
     private settings:Settings;
@@ -45,5 +46,9 @@ export class SettingsService {
 
     getSettings() {
         return this.settings;
+    }
+
+    isVersionBlacklisted(version:string):boolean {
+        return !!this.settings.versionBlackList.find(versionFilter => version.includes(versionFilter))
     }
 }

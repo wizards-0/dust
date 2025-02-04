@@ -1,3 +1,8 @@
+.my-2 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem
+}
+
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem
@@ -9,6 +14,14 @@
 
 .ml-2 {
   margin-left: 0.5rem
+}
+
+.mt-2 {
+  margin-top: 0.5rem
+}
+
+.mt-4 {
+  margin-top: 1rem
 }
 
 .box-border {
@@ -48,6 +61,14 @@
   height: 100vh
 }
 
+.w-24 {
+  width: 6rem
+}
+
+.w-48 {
+  width: 12rem
+}
+
 .w-96 {
   width: 24rem
 }
@@ -76,6 +97,10 @@
   flex-direction: column
 }
 
+.items-start {
+  align-items: flex-start
+}
+
 .items-center {
   align-items: center
 }
@@ -84,12 +109,20 @@
   justify-content: center
 }
 
+.self-end {
+  align-self: flex-end
+}
+
 .overflow-auto {
   overflow: auto
 }
 
 .overflow-hidden {
   overflow: hidden
+}
+
+.rounded-full {
+  border-radius: 9999px
 }
 
 .rounded-lg {
@@ -102,6 +135,10 @@
 
 .border-solid {
   border-style: solid
+}
+
+.bg-error {
+  background-color: var(--error)
 }
 
 .bg-primary {
@@ -133,12 +170,25 @@
   padding-right: 1rem
 }
 
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem
+}
+
 .pb-4 {
   padding-bottom: 1rem
 }
 
 .pb-5 {
   padding-bottom: 1.25rem
+}
+
+.pl-3 {
+  padding-left: 0.75rem
+}
+
+.pt-2 {
+  padding-top: 0.5rem
 }
 
 .pt-4 {
@@ -157,6 +207,10 @@
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem
+}
+
+.text-on-error {
+  color: var(--on-error)
 }
 
 .text-on-primary {

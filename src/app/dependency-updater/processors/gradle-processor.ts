@@ -48,7 +48,9 @@ export class GradleProcessor {
                         .publishDate(component['publishedEpochMillis'])
                         .build()
                 });
-                let top10Downloads = versions.sort( (v1,v2) => v2.downloads - v1.downloads ).slice(0,10);
+                let top10Downloads = versions
+                    .filter(ver => !this.settingsService.isVersionBlacklisted(ver.version))
+                    .sort( (v1,v2) => v2.downloads - v1.downloads ).slice(0,10);
                 let maxDownloads = versions.maxBy(ver => ver.downloads)?.downloads;
                 let latestVersion = versions.filter(ver => !this.settingsService.getSettings().versionBlackList.includes(ver.version))
                     .maxBy(ver => ver.publishDate);
@@ -78,6 +80,7 @@ export class GradleProcessor {
 
                 let versions = List(resp.metadata.versioning.versions.version)
                     .map(ver => ver+'')
+                    .filter(ver => !this.settingsService.isVersionBlacklisted(ver))
                     .reverse()
                     .slice(0, 10)
                     .map(ver => Version.builder().version(ver).build());

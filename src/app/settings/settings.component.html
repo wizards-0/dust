@@ -10,7 +10,7 @@
                 <mat-radio-button value="dark">Dark</mat-radio-button>
             </mat-radio-group>
         </div>
-        <div id="proxySection" class="flex flex-row items-center px-4 pt-4">
+        <div id="proxySection" class="flex flex-row items-center bottom-divider px-4 pt-4">
             <mat-label class="flex w-96 text-base text-on-surface items-center pb-5">
                 <span>Cors Proxy</span>
                 <button mat-icon-button #proxyTooltip="matTooltip" (click)="proxyTooltip.toggle()" color="primary"
@@ -24,8 +24,8 @@
                 <input id="proxyUrlInputText" matInput [formControl]="proxyUrlInput" class="flex overflow-hidden" />
             </mat-form-field>
         </div>
-        <div id="versionFilterSection" class="flex flex-row items-start px-4 pt-4">
-            <mat-label class="flex items-start w-96 text-base text-on-surface items-center pb-5">
+        <div id="versionFilterSection" class="flex flex-row items-start bottom-divider px-4 pt-4">
+            <mat-label class="flex items-start w-96 text-base text-on-surface items-center mt-2">
                 <span>Version Filter</span>
                 <button mat-icon-button #versionFilterTooltip="matTooltip" (click)="versionFilterTooltip.toggle()" color="primary"
                     matTooltip="Versions in this list will be excluded from available options during dependency version selection.">
@@ -39,20 +39,23 @@
                         <input id="versionFilterInputText" matInput [formControl]="versionFilterInput" class="flex overflow-hidden" />
                     </mat-form-field>
                     <span class="flex pt-2 pl-3">
-                        <button class="flex" mat-icon-button (click)="addVersionFilter()">
+                        <button class="flex" id="addVersionFilterButton" mat-icon-button (click)="addVersionFilter()">
                             <mat-icon class="bg-primary text-on-primary rounded-full">add</mat-icon>
                         </button>
                     </span>
                 </div>
-                @for(ver of versionBlackList | async; track ver; let versionFilterIndex = $index) {
-                    <div class="flex mat-elevation-z2 bg-surface-container rounded-lg items-center my-4">
-                        <span class="flex grow text-on-surface ml-2">{{ver}}</span>
-                        <button class="flex self-end" mat-icon-button (click)="deleteVersionFilter(versionFilterIndex)">
-                            <mat-icon class="bg-error text-on-error rounded-full">close</mat-icon>
-                        </button>
-                    </div>
-                }
+                
             </div>
+        </div>
+        <div class="flex flex-col items-center py-2">
+            @for(ver of versionBlackList | async; track ver; let versionFilterIndex = $index) {
+                <div class="flex mat-elevation-z2 w-48 bg-surface-container rounded-lg items-center my-2">
+                    <span class="flex grow text-on-surface ml-2">{{ver}}</span>
+                    <button class="flex self-end" mat-icon-button (click)="deleteVersionFilter(versionFilterIndex)">
+                        <mat-icon class="bg-error text-on-error rounded-full">close</mat-icon>
+                    </button>
+                </div>
+            }
         </div>
     </div>
 </div>

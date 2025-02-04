@@ -151,7 +151,7 @@ $dark-theme: mat.define-theme((
   ),
 ));
 
-:root {  
+:root {
   --primary: #{mat.get-theme-color($light-theme,primary)};
   --on-primary: #{mat.get-theme-color($light-theme,on-primary)};
   --primary-hover : #{color.mix(mat.get-theme-color($light-theme, primary), mat.get-theme-color($light-theme, on-primary),95%)};

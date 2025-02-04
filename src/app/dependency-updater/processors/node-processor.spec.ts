@@ -49,7 +49,8 @@ describe('NodeProcessor', () => {
     let downloadInfo = List([
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build(),
-      Version.builder().version('5.0.1').downloads(5).build()
+      Version.builder().version('5.0.1').downloads(5).build(),
+      Version.builder().version('6.next').downloads(5).build()
     ]);
 
     let result = nodeProcessor.withLatestVersions(top10Downloads, '4.0.2','5.0.1', downloadInfo);
@@ -82,24 +83,24 @@ describe('NodeProcessor', () => {
       Version.builder().version('4.0.2').downloads(21).build()
     ]);
     result = nodeProcessor.withLatestVersions(top10Downloads, '4.0.2','4.0.2', downloadInfo);
-
     expect(result).toEqual(List([
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build()
     ]));
 
-    top10Downloads = List([
-      Version.builder().version('3.5.16').downloads(11).build(),
-      Version.builder().version('4.0.2').downloads(21).build()
-    ]);
     result = nodeProcessor.withLatestVersions(top10Downloads, '4.1.2','5.1.2', downloadInfo);
-
     expect(result).toEqual(jsonMatching(List([
       Version.builder().version('3.5.16').downloads(11).build(),
       Version.builder().version('4.0.2').downloads(21).build(),
       Version.builder().version('4.1.2').build(),
       Version.builder().version('5.1.2').build()
     ])));
+
+    result = nodeProcessor.withLatestVersions(top10Downloads, '6.next','4.0.2', downloadInfo);
+    expect(result).toEqual(List([
+      Version.builder().version('3.5.16').downloads(11).build(),
+      Version.builder().version('4.0.2').downloads(21).build()
+    ]));
   });
 
   it('should be able to fetch detailed info for versions', (done) => {
@@ -202,31 +203,33 @@ describe('NodeProcessor', () => {
       version:"1.0.0",
       dependencies:{
         "immutable": "4.3.6",
-        "rxjs": "5.4.2",        
+        "rxjs": "4.4.2",        
         "zone.js": "7.8.5"
       },
       devDependencies:{
-        "typescript": "4.0.2",
+        "typescript": "5.0.2",
         "webpack":"11.4.3"
       }
     };
     let downloadInfo = {
       "downloads":{
+        "3.5.4.rc":"7",
         "4.3.6":21,
-        "5.4.2":11,
-        "4.0.2":5
+        "4.4.2":11,
+        "5.0.2":5
       }
     };
     let packageInfo = {
       "dist-tags": {
-        "latest": "4.0.2",
-        "release-4-lts": "4.0.2",
+        "latest": "5.0.2",
+        "release-5-lts": "5.0.2",
         "release-3-lts": "3.5.16"
       },
       "time": {
+        "3.5.4.rc":"2012-07-25",
         "3.5.16": "2012-12-25",
-        "4.0.2": "2014-03-24",
-        "5.4.2": "2014-03-21"
+        "5.0.2": "2014-03-24",
+        "4.4.2": "2014-03-21"
       }
     };
     let getDownloadInfoUrl = (depName:string) => ApiUrl.NodeDownload.replace('${packageName}', encodeURIComponent(depName));
@@ -249,14 +252,14 @@ describe('NodeProcessor', () => {
     });
 
     let expectedVersions = List([
-      Version.builder().version('4.0.2').downloads(5).relativeDownloads(24).publishDate(toMillis('2014-03-24')).tag('latest, release-4-lts').build(),
-      Version.builder().version('5.4.2').downloads(11).relativeDownloads(52).publishDate(toMillis('2014-03-21')).tag('').build(),
+      Version.builder().version('5.0.2').downloads(5).relativeDownloads(24).publishDate(toMillis('2014-03-24')).tag('latest, release-5-lts').build(),
+      Version.builder().version('4.4.2').downloads(11).relativeDownloads(52).publishDate(toMillis('2014-03-21')).tag('').build(),
       Version.builder().version('4.3.6').downloads(21).relativeDownloads(100).publishDate(-1).tag('').build()
     ]);
     result.dependencyList$.pipe(take(1)).subscribe(deps => {
       expect(deps).toEqual(List([
         Dependency.builder().name('immutable').currentVersion('4.3.6').versions(expectedVersions).build(),
-        Dependency.builder().name('rxjs').currentVersion('5.4.2').versions(expectedVersions).build(),
+        Dependency.builder().name('rxjs').currentVersion('4.4.2').versions(expectedVersions).build(),
         Dependency.builder().name('zone.js').currentVersion('7.8.5').versions(expectedVersions).build()
       ]));
       tracker.next(true);
@@ -264,10 +267,10 @@ describe('NodeProcessor', () => {
 
     result.devDependencyList$.pipe(take(1)).subscribe(deps => {      
       expect(deps).toEqual(List([
-        Dependency.builder().name('typescript').currentVersion('4.0.2').versions(expectedVersions).build(),
+        Dependency.builder().name('typescript').currentVersion('5.0.2').isLatest(true).versions(expectedVersions).build(),
         Dependency.builder().name('webpack').currentVersion('11.4.3').versions(List([])).build()
       ]));
-      tracker.next(true);  
+      tracker.next(true);
     });
   });
 

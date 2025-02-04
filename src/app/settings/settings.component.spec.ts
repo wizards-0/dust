@@ -126,7 +126,7 @@ describe('SettingsComponent', () => {
     ));
 
     component.versionBlackList.next(SettingsService.DEFAULT_BLACK_LISTED_VERSIONS.push('pre'));
-    component.deleteVersionFilter(7);
+    component.deleteVersionFilter(SettingsService.DEFAULT_BLACK_LISTED_VERSIONS.size);
     expect(component.settingsService.updateSettings).toHaveBeenCalledWith(jsonMatching(new Settings(
       SettingsService.CURRENT_SETTINGS_VERSION,
       'dark', 'https://www.some.bs',

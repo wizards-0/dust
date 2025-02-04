@@ -36,10 +36,9 @@ export class DependencyUpdateSelectorComponent implements OnInit {
   //@Output, will hold the same reference of behavior subject as parent on init. Any emits on this datasource will be received by parent
   depsArr$: Observable<Dependency[]> = of([]);
   id: string = '';
-  selection = new SelectionModel<Dependency>(true, []);
-  areAllSelected = false;
+  isAllSelected = false;
   selectionCount = 0;
-  constructor(public cdr:ChangeDetectorRef) {
+  constructor() {
   }
 
   @Input()
@@ -73,13 +72,13 @@ export class DependencyUpdateSelectorComponent implements OnInit {
 
   updateDependencyVersion(rowIndex: number) {
     let dependencies = this.dataSource.value;
-    let dependencyToUpdate = dependencies.get(rowIndex, Dependency.empty())
-      .with(dep => {
+    let dependencyToUpdate = dependencies.get(rowIndex, Dependency.empty());
+    let updatedDependency = dependencyToUpdate.with(dep => {
         dep.isUpdated(true);
         dep.isLatest(matchVersion(Dependency.builder().updateVersion(this.updateVersionTemp.value).build(),dependencyToUpdate.versions.get(0,Version.empty())))
         dep.updateVersion(this.updateVersionTemp.value);
       });
-    this.dataSource.next(dependencies.set(rowIndex, dependencyToUpdate));
+    this.dataSource.next(dependencies.set(rowIndex, updatedDependency));
   }
 
   getVersionPrefix(version: string): string {
@@ -110,29 +109,31 @@ export class DependencyUpdateSelectorComponent implements OnInit {
     return value < 0 ? 'NA' : value + '';
   }
 
-  /** Whether the number of selected elements matches the total number of rows. */
-  isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.value.size;
-    return numSelected == numRows;
-  }
-
   toggleSelection(dependencyIndex:number) {
     let dependencies = this.dataSource.value;
-    let dependencyToUpdate = dependencies.get(dependencyIndex, Dependency.empty())      
+    let dependencyToUpdate = dependencies.get(dependencyIndex, Dependency.empty());
+    let isSelected = !dependencyToUpdate.isSelected;
     this.dataSource.next(dependencies.set(dependencyIndex, dependencyToUpdate.with(dep => {
-      dep.isSelected(!dependencyToUpdate.isSelected);
+      dep.isSelected(isSelected);
     })));
+    if(isSelected){
+      this.selectionCount += 1;
+      if(this.selectionCount == dependencies.size) this.isAllSelected = true;
+    } else {
+      this.selectionCount -= 1;
+      this.isAllSelected = false;
+    }
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
   toggleAllRows() {
-    if(this.areAllSelected){      
-      this.areAllSelected = false;
+    if(this.isAllSelected){
+      this.selectionCount = 0;
+      this.isAllSelected = false;
       this.dataSource.next(this.dataSource.value.map(dep => dep.with(depMut => depMut.isSelected(false))));
-      this.cdr.detectChanges();
     } else {
-      this.areAllSelected = true;
+      this.selectionCount = this.dataSource.value.size;
+      this.isAllSelected = true;
       this.dataSource.next(this.dataSource.value.map(dep => dep.with(depMut => depMut.isSelected(true))));
     }
   }

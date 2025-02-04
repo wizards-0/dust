@@ -25,6 +25,6 @@ export function jsonMatching(jsonObject:any) {
                 return JSON.stringify(jsonObject) == JSON.stringify(other);
               }
         },
-        jasmineToString: () => JSON.stringify(jsonObject,null,2)
+        jasmineToString: () => JSON.stringify(jsonObject)
     }
 }

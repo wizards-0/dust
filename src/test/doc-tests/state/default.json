@@ -6,7 +6,7 @@
       "localStorage": [
         {
           "name": "dustSettings",
-          "value": "{\"theme\":\"dark\",\"corsProxy\":\"http://localhost:3040\"}"
+          "value": "{\"settingsVersion\":2,\"theme\":\"dark\",\"corsProxy\":\"http://localhost:3040\",\"versionBlackList\":[\"modified\",\"alpha\",\"beta\",\"rc\",\"candidate\",\"insider\",\"next\",\"dev\"]}"
         }
       ]
     }

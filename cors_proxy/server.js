@@ -5,12 +5,16 @@ const port = 3040;
 
 app.get('/get', (req, res) => {
   let originalUrl = req.query.url;
-  https.request(originalUrl, function (response) {
+  if(originalUrl.startsWith('https://plugins.gradle.org/m2/')) {
+    https.request(originalUrl, function (response) {
       res.setHeader('Access-Control-Allow-Origin','*');
       response.pipe(res);
   }).on('error', function (e) {
       res.sendStatus(500);
   }).end();
+  } else {
+    res.sendStatus(404);
+  }
 })
 
 app.listen(port, () => {

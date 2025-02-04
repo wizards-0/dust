@@ -113,4 +113,60 @@ describe('DependencyUpdateSelectorComponent', () => {
     expect(component.getNAForNegativeValue(0)).toBe('0');
     expect(component.getNAForNegativeValue(-1)).toBe('NA');
   });
+
+  it('should be able to toggle row selection', () => {
+    let deps = [
+      Dependency.builder().name('d1').currentVersion('v1').build(),
+      Dependency.builder().name('d2').currentVersion('v1').build(),
+      Dependency.builder().name('d3').currentVersion('v1').build()
+    ];
+    component.dataSource = new BehaviorSubject(List(deps));
+    component.ngOnInit();
+
+    component.toggleSelection(1);
+    expect(component.dataSource.value.get(1)?.isSelected).toBeTrue();
+    expect(component.selectionCount).toBe(1);
+    expect(component.isAllSelected).toBeFalse();
+
+    component.toggleSelection(1);
+    expect(component.dataSource.value.get(1)?.isSelected).toBeFalse();
+    expect(component.selectionCount).toBe(0);
+    expect(component.isAllSelected).toBeFalse();
+
+    component.toggleSelection(0);
+    expect(component.dataSource.value.get(0)?.isSelected).toBeTrue();
+    expect(component.selectionCount).toBe(1);
+    expect(component.isAllSelected).toBeFalse();
+    component.toggleSelection(1);
+    expect(component.dataSource.value.get(1)?.isSelected).toBeTrue();
+    expect(component.selectionCount).toBe(2);
+    expect(component.isAllSelected).toBeFalse();
+    component.toggleSelection(2);
+    expect(component.dataSource.value.get(2)?.isSelected).toBeTrue();
+    expect(component.selectionCount).toBe(3);
+    expect(component.isAllSelected).toBeTrue();
+  });
+
+  it('should be able to toggle selection for All rows', () => {
+    let deps = [
+      Dependency.builder().name('d1').currentVersion('v1').build(),
+      Dependency.builder().name('d2').currentVersion('v1').build(),
+      Dependency.builder().name('d3').currentVersion('v1').build()
+    ];
+    component.dataSource = new BehaviorSubject(List(deps));
+    component.ngOnInit();
+
+    component.toggleAllRows();
+    expect(component.selectionCount).toBe(3);
+    expect(component.isAllSelected).toBeTrue();
+    component.toggleSelection(1);
+    expect(component.selectionCount).toBe(2);
+    expect(component.isAllSelected).toBeFalse();
+    component.toggleAllRows();
+    expect(component.selectionCount).toBe(3);
+    expect(component.isAllSelected).toBeTrue();
+    component.toggleAllRows();
+    expect(component.selectionCount).toBe(0);
+    expect(component.isAllSelected).toBeFalse();
+  });
 });

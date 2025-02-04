@@ -7,36 +7,36 @@
 
 
             <ng-container matColumnDef="isSelected">
-                <th mat-header-cell *matHeaderCellDef>
-                    <mat-checkbox (change)="$event ? toggleAllRows() : null" [checked]="areAllSelected"
+                <th mat-header-cell *matHeaderCellDef class="dependency-list-header">
+                    <mat-checkbox id="{{id}}-selectAllCheckBox" (change)="$event ? toggleAllRows() : null" [checked]="isAllSelected"
                         [indeterminate]="0 < selectionCount && selectionCount < dataSource.value.size">
                     </mat-checkbox>
                 </th>
                 <td mat-cell *matCellDef="let element;let depIndex = dataIndex;">
-                    <mat-checkbox (click)="$event.stopPropagation()"
+                    <mat-checkbox (click)="$event.stopPropagation()" id="{{id}}-selectDependencyCheckBox-{{depIndex}}"
                         (change)="$event ? toggleSelection(depIndex) : null" [checked]="element.isSelected">
                     </mat-checkbox>
                 </td>
             </ng-container>
 
             <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef> Name </th>
+                <th mat-header-cell *matHeaderCellDef class="dependency-list-header"> Name </th>
                 <td mat-cell *matCellDef="let element"> {{element.name}} </td>
             </ng-container>
 
             <ng-container matColumnDef="currentVersion">
-                <th mat-header-cell *matHeaderCellDef> Current Version </th>
+                <th mat-header-cell *matHeaderCellDef class="dependency-list-header"> Current Version </th>
                 <td mat-cell *matCellDef="let element"> {{element.currentVersion}} </td>
             </ng-container>
 
             <ng-container matColumnDef="updateVersion">
-                <th mat-header-cell *matHeaderCellDef> Update Version </th>
+                <th mat-header-cell *matHeaderCellDef class="dependency-list-header"> Update Version </th>
                 <td mat-cell *matCellDef="let element;let depIndex = dataIndex;" id="{{id}}-updateVersion-{{depIndex}}">
                     {{element.updateVersion}} </td>
             </ng-container>
 
             <ng-container matColumnDef="isUpdated">
-                <th mat-header-cell *matHeaderCellDef class="align-center"> Updated </th>
+                <th mat-header-cell *matHeaderCellDef class="align-center" class="dependency-list-header"> Updated </th>
                 <td mat-cell *matCellDef="let element;let depIndex = dataIndex;" class="align-center">
                     @if(element.isUpdated == true){
                     <mat-icon id="{{id}}-updatedIndicator-{{depIndex}}" style="color:#4bbf7a">check_circle</mat-icon>
@@ -44,7 +44,7 @@
                 </td>
             </ng-container>
             <ng-container matColumnDef="isLatest">
-                <th mat-header-cell *matHeaderCellDef class="align-center"> Latest </th>
+                <th mat-header-cell *matHeaderCellDef class="align-center" class="dependency-list-header"> Latest </th>
                 <td mat-cell *matCellDef="let element;let depIndex = dataIndex;" class="align-center">
                     @if(element.isLatest == true) {
                     <mat-icon id="{{id}}-latestIndicator-{{depIndex}}" style="color:#4bbf7a">check_circle</mat-icon>
@@ -53,7 +53,7 @@
             </ng-container>
 
             <ng-container matColumnDef="details">
-                <th mat-header-cell *matHeaderCellDef> Versions </th>
+                <th mat-header-cell *matHeaderCellDef class="dependency-list-header"> Versions </th>
                 <td mat-cell *matCellDef="let element;let depIndex = dataIndex;">
                     <button id="{{id}}-detailsButton-{{depIndex}}" mat-icon-button aria-label="expand row"
                         (click)="toggleDependencyDetails(element,$event)">
@@ -100,7 +100,7 @@
 
                                 <ng-container matColumnDef="version">
                                     <th mat-header-cell class="version-detail-header" *matHeaderCellDef> Version </th>
-                                    <td mat-cell *matCellDef="let versionElement"> {{versionElement.version}} </td>
+                                    <td mat-cell id="{{id}}-versionCell-{{rowIndex}}-{{verIndex}}" *matCellDef="let versionElement;let verIndex = index;"> {{versionElement.version}} </td>
                                 </ng-container>
 
                                 <ng-container matColumnDef="downloads">

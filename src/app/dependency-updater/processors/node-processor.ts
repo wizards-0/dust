@@ -93,10 +93,12 @@ export class NodeProcessor {
       .pipe(map((packageInfo: any) => {
         let distTags = this.mapTagsToVersion(packageInfo['dist-tags']);
         let publishInfo = Map(packageInfo['time']);
-        let top10Downloads = dep.versions.sort(this.versionDownloadsComparator).slice(0, 10);
+        let top10Downloads = dep.versions
+          .filter(ver => !this.settingsService.isVersionBlacklisted(ver.version))
+          .sort(this.versionDownloadsComparator).slice(0, 10);
         let latestVersionString = packageInfo['dist-tags']['latest'];
         let lastUpdatedVersion = (publishInfo.entrySeq()
-        .filter( (e:any) => !this.settingsService.getSettings().versionBlackList.find(versionFilter => e[0].includes(versionFilter)))
+        .filter( (e:any) => !this.settingsService.isVersionBlacklisted(e[0]))
         .max( (e1:any,e2:any) => DateTime.fromISO(e1[1]).toMillis() - DateTime.fromISO(e2[1]).toMillis()) as any)[0];
         let top10VersionsWithLatestTag = this.withLatestVersions(top10Downloads, latestVersionString,lastUpdatedVersion, dep.versions)
           .map(ver => ver.with(builder => {
@@ -141,7 +143,7 @@ export class NodeProcessor {
       if(ver.version == lastUpdatedVersionString) missingLastUpdatedVersion = false;
     }
 
-    if(latestVersionString && missingLatestTagVersion) {
+    if(latestVersionString && missingLatestTagVersion && !this.settingsService.isVersionBlacklisted(latestVersionString)) {
       result = result.push(Version.builder()
       .version(latestVersionString)
       .downloads((allDownloads.find(v => v.version == latestVersionString) ?? Version.empty()).downloads)
@@ -159,7 +161,7 @@ export class NodeProcessor {
   }
 
   mapTagsToVersion(distTags: any): Map<string, string> {
-    let accumulator: any = {};
+    let accumulator: {[key: string]: string} = {};
     for (let tag in distTags) {
       let version: string = distTags[tag];
       if (accumulator.hasOwnProperty(version)) {
@@ -168,6 +170,6 @@ export class NodeProcessor {
         accumulator[version] = tag;
       }
     }
-    return Map(accumulator);
+    return Map(accumulator).toMap() as Map<string, string>;
   }
 }

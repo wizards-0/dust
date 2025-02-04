@@ -46,7 +46,8 @@ const nodeVersionDownloadInfo = {
         "18": 18000,
         "19": 17500,
         "20": 16500,
-        "21": 6500
+        "21": 6500,
+        "22-beta": 2500
     }
 }
 
@@ -77,7 +78,8 @@ const nodeVersionPublishInfo = {
         "18": "2022-01-01",
         "19": "2023-01-01",
         "20": "2024-01-01",
-        "21": "2025-01-01"
+        "21": "2025-01-01",
+        "22-beta": "2025-01-21"
     }
 }
 
@@ -103,7 +105,8 @@ const mavenPackageVersions = {
         { version: "18", dependencyOfCount: 18000, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2022-01-01").toMillis() },
         { version: "19", dependencyOfCount: 17500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2023-01-01").toMillis() },
         { version: "20", dependencyOfCount: 16500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2024-01-01").toMillis() },
-        { version: "21", dependencyOfCount: 6500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2025-01-01").toMillis() }
+        { version: "21", dependencyOfCount: 6500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2025-01-01").toMillis() },
+        { version: "22-beta", dependencyOfCount: 6500, ossIndexInfo: { vulnerabilityCount: 0 }, publishedEpochMillis: DateTime.fromISO("2025-01-01").toMillis() }
     ]
 }
 
@@ -133,7 +136,8 @@ const gradlePluginVersions = {
                     "18",
                     "19",
                     "20",
-                    "21"]
+                    "21",
+                    "22-beta"]
             }
         }
     }

@@ -43,10 +43,12 @@ Dependency List has following columns which are common to Node & Gradle
 
 | Column Name       | Purpose                                                           |
 |-------------------|-------------------------------------------------------------------|
+| Select            | Multi select dependencies for updating version in bulk            |
 | Name              | Name of the dependency                                            |
 | Current Version   | Version present in the current build file                         |
 | Update Version    | Version which will be used in updated file                        |
 | Updated           | Shows a check mark if a version was selected for that dependency to track progress |
+| Latest            | Shows a check mark if current version matches the latest version from relevant versions. Related **[Relevant Versions](/user-guide?id=relevant-versions)** |
 | Versions          | Each row has an expand icon, which can be clicked to see version details |
 
 ---
@@ -80,22 +82,38 @@ Dependency versions have slight differences between build systems, as their repo
 ---
 
 #### Version Selection
-After expanding dependency, a sub grid with relevant versions will be displayed. Select the radio button with desired version to initiate selection.
+After expanding dependency, a sub grid with **[Relevant Versions](/user-guide?id=relevant-versions)** will be displayed.
+Select the radio button with desired version to initiate selection.
 This version will be populated in the text box above grid, this is done to provide option for manual edits if required.
 When selecting a new version, If the existing version had identifiable **[prefix*](/user-guide?id=version-prefix)**,
 it is automatically added to the new version. This is done as it is the most common way to describe versions in node.
 Example "@angular/cli": "^18.1.2", is updated to "@angular/cli": "^19.0.5". Version in text box will automatically apply '^' prefix to the new version.
 
-Text Box can also be used to specify version for local dependencies manually.
+Text Box can also be used to specify version manually, when versions are not available from APIs or they are absent in version grid.
 Click on select button after confirming the version is in text box, to complete version selection.
 Sub grid will auto collapse on clicking select to speed up the process.
-Dependency will have update version populated in main grid 
-and it will be marked with green check to track progress.
+Dependency will have update version populated in main grid and it will be marked with green check to track progress.
+
+---
+
+#### Relevant Versions
+Download stats is used to figure out relevant versions. Top 10 downloaded versions along with last updated version and version with "latest" tag if present are selected.
+For calculating both top 10 downloads and latest version, **[Version Filter](/user-guide?id=version-filter)** is taken into consideration.
+Versions having filter keyword in them will be filtered first, then rest of the operations will be performed. Namely figuring out top 10 and latest.
+Number of versions are restricted to remove clutter. Most of the time desired version will be present in Top 10 most downloaded versions.
 
 ---
 
 #### *Version Prefix
 If version is in format ```[symbols][wordChar][anything]```, then symbols at the beginning are treated as prefix
+
+---
+
+### Multi Update
+This can update multiple dependencies to latest version. By default, this will apply latest version to selected dependencies.
+If latest version is very new / unstable, 2nd 3rd or 4th latest version can be selected from dropdown.
+If unwanted versions are showing up as latest, **[Version Filter](/user-guide?id=version-filter)** can be utilized to exclude them.
+If no dependencies are selected, this operation will do nothing
 
 ---
 
@@ -106,7 +124,7 @@ While no changes will be made to other part of build file. This can now be paste
 ---
 
 ## Settings
-Settings allows you to specify color scheme, and CORS proxy Url.
+Settings allows you to specify color scheme, CORS proxy Url and Version Filter.
 
 ---
 
@@ -120,5 +138,14 @@ It should work with format proxyUrl+originalUrl.
 Example "https://github.com/Rob--W/cors-anywhere"
 - Least preferred option is to use a public proxy, like ```https://api.allorigins.win/get?url=```.
 This option will work, but its not very reliable, and it incurs cost to the provider hosting this service purely for test purpose.
+
+---
+
+### Version Filter
+Version filter allows you to specify keywords for excluding versions.Filter is used to perform a contains check and not an exact match.
+So all versions, having any of the filter strings in them will be excluded from version details grid.
+This feature is mostly useful when you want to keep dependencies at latest version, but do not want to use beta versions.
+This can ensure the top version is a stable one, allowing you to bulk select latest version for all dependencies.
+Also the tracker column indicating if the dependency is on latest version becomes more useful.
 
 ---

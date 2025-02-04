@@ -171,6 +171,8 @@ describe('DependencyUpdaterComponent', () => {
   });
 
   it('should be able to select latest version for all dependencies', () => {
+    spyOn(mocks.alertService,'show');
+
     let versions = List([
       Version.builder().version('5.1.2').downloads(31).build(),
       Version.builder().version('4.1.2').downloads(41).build(),
@@ -178,21 +180,29 @@ describe('DependencyUpdaterComponent', () => {
       Version.builder().version('3.5.16').downloads(11).build()          
     ]);
     let depsList = List([
-      Dependency.builder().name('d1').currentVersion('5.1.2').versions(versions).build(),
-      Dependency.builder().name('d2').currentVersion('^5.1.2').versions(versions).build(),
-      Dependency.builder().name('d3').currentVersion('~3.5.16').versions(versions).build(),
-      Dependency.builder().name('d4').currentVersion('1.0.0').versions(versions).build()
+      Dependency.builder().name('d1').currentVersion('5.1.2').isSelected(true).isLatest(true).versions(versions).build(),
+      Dependency.builder().name('d2').currentVersion('^5.1.2').isSelected(true).isLatest(true).versions(versions).build(),
+      Dependency.builder().name('d3').currentVersion('~3.5.16').isSelected(true).versions(versions).build(),
+      Dependency.builder().name('d4').currentVersion('1.0.0').isSelected(true).versions(versions).build()
     ]);
     component.dependenciesDataSource.next(depsList);
 
     component.updatedDependenciesVersion();
+    expect(mocks.alertService.show).toHaveBeenCalledOnceWith(jasmine.any(String),AlertCategory.success,2000);
 
     expect(component.dependenciesDataSource.value).toEqual(jsonMatching(List([
-      Dependency.builder().name('d1').currentVersion('5.1.2').versions(versions).build(),
-      Dependency.builder().name('d2').currentVersion('^5.1.2').versions(versions).build(),
-      Dependency.builder().name('d3').currentVersion('~3.5.16').updateVersion('~5.1.2').isUpdated(true).versions(versions).build(),
-      Dependency.builder().name('d4').currentVersion('1.0.0').updateVersion('5.1.2').isUpdated(true).versions(versions).build()
+      Dependency.builder().name('d1').currentVersion('5.1.2').isSelected(true).isLatest(true).versions(versions).build(),
+      Dependency.builder().name('d2').currentVersion('^5.1.2').isSelected(true).isLatest(true).versions(versions).build(),
+      Dependency.builder().name('d3').currentVersion('~3.5.16').isSelected(true).isLatest(true).updateVersion('~5.1.2').isUpdated(true).versions(versions).build(),
+      Dependency.builder().name('d4').currentVersion('1.0.0').isSelected(true).isLatest(true).updateVersion('5.1.2').isUpdated(true).versions(versions).build()
     ])));
+
+    let unselectedDeps = depsList.map(dep => dep.toBuilder().isSelected(false).build());
+    component.latestOptionInput.setValue(undefined as any);
+    component.dependenciesDataSource.next(unselectedDeps);
+    component.updatedDependenciesVersion();
+    expect(component.dependenciesDataSource.value).toEqual(unselectedDeps);
+    expect(mocks.alertService.show).toHaveBeenCalledWith(jasmine.any(String),AlertCategory.info,2000);
   });
 
   it('should be able to identify if current or update version is present in list of available versions', ()=>{
