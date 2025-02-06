@@ -6,6 +6,7 @@ services:
       context: ./
     ports:
       - 4200:4200
+      - 4201:4201
       - 3040:3040
     develop:
       watch:

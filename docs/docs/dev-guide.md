@@ -9,7 +9,8 @@
 - run ```docker compose watch``` from base directory. It will build image, start dev server, local CORS proxy.  
 It watches for file changes, it will reload dev server on code changes.
 It will rebuild image for package.json changes
-- To shutdown dev server, run ```shutdown.sh``` for executing ```docker compose down``` and ```docker image prune -f```. Image prune is useful as dangling images might be created due to package.json changes
+- To shutdown dev server, run ```shutdown.sh``` for executing ```docker compose down``` and ```docker image prune -f```.
+Image prune is useful as dangling images might be created due to package.json changes
 
 ### Local Services
 Following servers are brought up with ```npm run dev```
@@ -19,6 +20,14 @@ Following servers are brought up with ```npm run dev```
 | Dev Server                            | http://localhost:4200/                            |
 | Dev Server with mock data             | http://localhost:4201/                            | 
 | Local CORS Proxy URL                  | http://localhost:3040/get?url=                    |
+
+### Running Tests
+Start dev server with ```npm run dev``` before running tests. cors proxy started by this command is needed for karma test. Local dev server by doc tests
+Then ```npm test``` can be used to run test, ```npm run coverage``` for coverage check and ```npm run doc-test``` for running e2e doc test.
+
+For docker, above commands can be run on container from docker desktop, exec tab of dust-dev-server-1 container.
+Or you can go to container's shell from any other terminal, using docker exec.
+After running test inside docker, reports & docs can be extracted by ```get-docker-test-op.sh```.
 
 ### Known Issues
 - 504 (Outdated Optimize Dep) : Stop dev server, Run ```npm run clean```, clear browser cache, restart dev server & browser
@@ -33,6 +42,7 @@ and only solution is to re-run them
 - Luxon lib for handling dates
 - immutable js for lists, maps
 - docsify for documentation website
+- Playwright for e2e doc tests
 
 ### Code guidelines
 - All components must be standalone
