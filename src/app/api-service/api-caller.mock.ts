@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { of } from "rxjs";
 import { SettingsService } from "../settings/settings.service";
 import { DateTime } from "luxon";
+import { List } from "immutable";
 
 export class ApiCaller {
     constructor(private readonly httpClient: HttpClient, public settingsService: SettingsService) {
@@ -111,34 +112,28 @@ const mavenPackageVersions = {
 }
 
 const gradlePluginVersions = {
-    metadata: {
-        versioning: {
-            lastUpdated: "20250101000000",
-            versions: {
-                version: [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "7",
-                    "8",
-                    "9",
-                    "10",
-                    "11",
-                    "12",
-                    "13",
-                    "14",
-                    "15",
-                    "16",
-                    "17",
-                    "18",
-                    "19",
-                    "20",
-                    "21",
-                    "22-beta"]
-            }
-        }
-    }
+    lastUpdated: "20250101000000",
+    versions: List([
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22-beta"])
 }

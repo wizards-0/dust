@@ -76,9 +76,9 @@ export class GradleProcessor {
             return this.apiService.getGradlePluginVersions(dep.name)
             .pipe(map((resp: any) => {
 
-                let lastUpdated = DateTime.fromFormat(resp.metadata.versioning.lastUpdated+'','yyyyLLddHHmmss');
+                let lastUpdated = DateTime.fromFormat(resp.lastUpdated+'','yyyyLLddHHmmss');
 
-                let versions = List(resp.metadata.versioning.versions.version)
+                let versions = (resp.versions as List<string>)
                     .map(ver => ver+'')
                     .filter(ver => !this.settingsService.isVersionBlacklisted(ver))
                     .reverse()

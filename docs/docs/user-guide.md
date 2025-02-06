@@ -48,14 +48,14 @@ Dependency List has following columns which are common to Node & Gradle
 | Current Version   | Version present in the current build file                         |
 | Update Version    | Version which will be used in updated file                        |
 | Updated           | Shows a check mark if a version was selected for that dependency to track progress |
-| Latest            | Shows a check mark if current version matches the latest version from relevant versions. Related **[Relevant Versions](/user-guide?id=relevant-versions)** |
+| Latest            | Shows a check mark if current version matches the latest version from relevant versions |
 | Versions          | Each row has an expand icon, which can be clicked to see version details |
 
 ---
 
 ### Dependency Versions
 Version detail grid, displays 10 most relevant versions along with latest for that dependency.
-How the relevant versions are picked is detailed in **[user flows](/user-flows)**.
+See **[Relevant Versions](/user-guide?id=relevant-versions)** for details.
 Dependency versions have slight differences between build systems, as their repository API provide different attributes.
 
 ---
@@ -96,16 +96,16 @@ Dependency will have update version populated in main grid and it will be marked
 
 ---
 
-#### Relevant Versions
+#### *Version Prefix
+If version is in format ```[symbols][wordChar][anything]```, then symbols at the beginning are treated as prefix
+
+---
+
+### Relevant Versions
 Download stats is used to figure out relevant versions. Top 10 downloaded versions along with last updated version and version with "latest" tag if present are selected.
 For calculating both top 10 downloads and latest version, **[Version Filter](/user-guide?id=version-filter)** is taken into consideration.
 Versions having filter keyword in them will be filtered first, then rest of the operations will be performed. Namely figuring out top 10 and latest.
 Number of versions are restricted to remove clutter. Most of the time desired version will be present in Top 10 most downloaded versions.
-
----
-
-#### *Version Prefix
-If version is in format ```[symbols][wordChar][anything]```, then symbols at the beginning are treated as prefix
 
 ---
 

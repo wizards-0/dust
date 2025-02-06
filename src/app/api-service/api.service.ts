@@ -8,7 +8,7 @@ import { Injectable } from "@angular/core";
 })
 export class ApiService {
     private readonly apiCaller:ApiCaller;
-    constructor(private readonly httpClient: HttpClient, public settingsService: SettingsService) {
+    constructor(public readonly httpClient: HttpClient, public settingsService: SettingsService) {
         this.apiCaller = new ApiCaller(httpClient,settingsService);
      }
 

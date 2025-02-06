@@ -6,9 +6,7 @@ This section provides detailed sequence of steps for both user and application p
 2. Basic validation is performed. If it is invalid, an error message is shown. Else the process continues
 3. Application parses build file & creates a list of dependencies having name & current version
 4. For each dependency data is fetched from repository API 
-5. Download stats is used to figure out relevant versions. Top 10 downloaded versions & version with "latest" tag if present are selected.
-Number of versions are restricted to remove clutter. Most of the time desired version will be present in Top 10 most downloaded versions.
-For exceptions version can be provided manually
+5. Relevant versions are calculated, See **[Version Selection*](/user-guide?id=relevant-versions)** for details
 6. Data from APIs is reduced to list of dependencies, with following attributes
     - Dependency
         - Name

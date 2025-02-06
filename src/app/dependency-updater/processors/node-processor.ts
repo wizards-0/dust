@@ -135,22 +135,26 @@ export class NodeProcessor {
 
   withLatestVersions(top10Downloads: List<Version>, latestVersionString: string | undefined, lastUpdatedVersionString: string, allDownloads: List<Version>): List<Version> {
     let result = top10Downloads;
-    let missingLatestTagVersion = true;
-    let missingLastUpdatedVersion = true;
-    if(latestVersionString == lastUpdatedVersionString) missingLastUpdatedVersion = false;
-    for(let ver of top10Downloads) {
-      if(ver.version == latestVersionString) missingLatestTagVersion = false;
-      if(ver.version == lastUpdatedVersionString) missingLastUpdatedVersion = false;
+    let initialValue = {
+      missingLatestTagVersion: latestVersionString && !this.settingsService.isVersionBlacklisted(latestVersionString),
+      missingLastUpdatedVersion: latestVersionString != lastUpdatedVersionString
     }
+    let match = top10Downloads.reduce( (acc,ver) => {
+      return {
+        missingLatestTagVersion: acc.missingLatestTagVersion && ver.version != latestVersionString,
+        missingLastUpdatedVersion: acc.missingLastUpdatedVersion && ver.version != lastUpdatedVersionString
+      }
+    }, initialValue );
 
-    if(latestVersionString && missingLatestTagVersion && !this.settingsService.isVersionBlacklisted(latestVersionString)) {
+
+    if(match.missingLatestTagVersion) {
       result = result.push(Version.builder()
-      .version(latestVersionString)
+      .version(latestVersionString as string)
       .downloads((allDownloads.find(v => v.version == latestVersionString) ?? Version.empty()).downloads)
       .build())
     }
 
-    if(missingLastUpdatedVersion) {
+    if(match.missingLastUpdatedVersion) {
       result = result.push(Version.builder()
       .version(lastUpdatedVersionString)
       .downloads((allDownloads.find(v => v.version == lastUpdatedVersionString) ?? Version.empty()).downloads)

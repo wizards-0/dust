@@ -4,6 +4,7 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
+    --color-*: initial;
     --color-primary: var(--primary);
     --color-on-primary: var(--on-primary);
     --color-primary-hover: var(--primary-hover);
@@ -27,7 +28,7 @@
     --color-surface: var(--surface);
     --color-on-surface:var(--on-surface);
     --color-surface-hover:var(--surface-hover);
-    --color-surface-container:var(--surface-container),             ;
+    --color-surface-container:var(--surface-container);
     --color-surface-container-high: var(--surface-container-high);
     --color-surface-container-highest: var(--surface-container-highest);
     --color-divider: var(--divider);

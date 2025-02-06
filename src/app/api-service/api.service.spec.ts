@@ -5,19 +5,24 @@ import { DateTime } from 'luxon';
 import { Settings } from '../settings/settings';
 import { catchError, reduce } from 'rxjs';
 import { SettingsService } from '../settings/settings.service';
+import { List } from 'immutable';
+import { MockResponse } from '../../test/mocks/http-client-mock';
+import { MockedObjects } from '../../test/mocks/mocked-objects';
 
 describe('API Service', () => {
 
   let apiService: ApiService;
+  let mocks: MockedObjects;
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 29000;
-    
-    
+
+
   });
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     apiService = TestBed.inject(ApiService);
+    mocks = new MockedObjects();
   });
 
   it('should be able to call node download API', (done) => {
@@ -72,19 +77,42 @@ describe('API Service', () => {
 
   it('should be able to call api for gradle plugin versions', (done) => {
     spyOn(apiService.settingsService, 'getSettings').and.returnValue(new Settings(
-                SettingsService.CURRENT_SETTINGS_VERSION,
-                'light',
-                ApiUrl.Proxy,
-                SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
-            ));
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'light',
+      ApiUrl.Proxy,
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+    ));
     apiService.getGradlePluginVersions('info.solidsoft.pitest').subscribe((resp: any) => {
-      let verArr: any[] = resp.metadata.versioning.versions.version;
-      expect(typeof verArr).toBe('object');
-      verArr.forEach(ver => {
+      let versions: List<string> = resp.versions;
+      expect(typeof versions).toBe('object');
+      versions.forEach(ver => {
         expect(typeof ver).toBe('string');
       });
-      let lastUpdateDiffInYears = DateTime.now().diff(DateTime.fromFormat(resp.metadata.versioning.lastUpdated + '', 'yyyyLLddHHmmss')).as('years');
+      let lastUpdateDiffInYears = DateTime.now().diff(DateTime.fromFormat(resp.lastUpdated + '', 'yyyyLLddHHmmss')).as('years');
       expect(lastUpdateDiffInYears).toBeLessThan(20);
+      done();
+    });
+  });
+
+  it('should return empty result for invalid gradle plugin API response', (done) => {
+    apiService = new ApiService(mocks.httpClient,mocks.settingsService);
+    spyOn(apiService.settingsService, 'getSettings').and.returnValue(new Settings(
+      SettingsService.CURRENT_SETTINGS_VERSION,
+      'light',
+      ApiUrl.Proxy,
+      SettingsService.DEFAULT_BLACK_LISTED_VERSIONS
+    ));
+    let pluginName = 'info.solidsoft.pitest';
+    let pluginMetadataUrl = ApiUrl.GradlePlugin.replace('${pluginPath}', `${pluginName.replaceAll('.', '/')}/${pluginName}.gradle.plugin`);
+    (mocks.httpClient as any).setMockResponses(List([
+      new MockResponse(pluginMetadataUrl, '', {}),
+    ]));    
+
+    apiService.getGradlePluginVersions(pluginName).subscribe((resp: any) => {
+      let versions: List<string> = resp.versions;
+      let lastUpdateDiffInDays = DateTime.fromMillis(0).diff(DateTime.fromFormat(resp.lastUpdated + '', 'yyyyLLddHHmmss')).as('days');
+      expect(lastUpdateDiffInDays).toBeLessThan(1);
+      expect(versions.isEmpty()).toBeTrue();
       done();
     });
   });

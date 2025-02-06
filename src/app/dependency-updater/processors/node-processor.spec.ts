@@ -4,11 +4,11 @@ import { MockedObjects } from '../../../test/mocks/mocked-objects';
 
 import { NodeProcessor } from './node-processor';
 import { Version } from '../model/version';
-import { DateTime, Duration } from 'luxon';
-import { equals } from 'ace-common-util';
-import { customMatchers, jsonMatching } from '../../../test/jasmine-matchers';
+import { DateTime } from 'luxon';
+
+import { jsonMatching } from '../../../test/jasmine-matchers';
 import { Dependency } from '../model/dependency';
-import { BehaviorSubject, of, skip, Subject, take } from 'rxjs';
+import { of, skip, Subject, take } from 'rxjs';
 import { ApiUrl } from '../../api-service/api.service';
 import { MockResponse } from '../../../test/mocks/http-client-mock';
 

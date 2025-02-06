@@ -33,7 +33,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         storageState: './src/test/doc-tests/state/default.json'
-      }
+      },
+      dependencies : ['doc-test-setup']
     }
 
     /*

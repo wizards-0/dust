@@ -20,6 +20,11 @@ Following servers are brought up with ```npm run dev```
 | Dev Server with mock data             | http://localhost:4201/                            | 
 | Local CORS Proxy URL                  | http://localhost:3040/get?url=                    |
 
+### Known Issues
+- 504 (Outdated Optimize Dep) : Stop dev server, Run ```npm run clean```, clear browser cache, restart dev server & browser
+- Flaky doc test : Doc test are automation tests, implemented using playwright. They fail randomly some times. As of now the reason is unclear,
+and only solution is to re-run them
+
 ## Technical Details
 
 ### Tech Stack

@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { map, retry, throwError } from "rxjs";
-import * as fxml from 'fast-xml-parser';
 import { SettingsService } from "../settings/settings.service";
 import {ApiUrl} from "./api.service";
+import { List } from "immutable";
 
 export class ApiCaller {
     constructor(private readonly httpClient: HttpClient, public readonly settingsService: SettingsService) {
@@ -33,9 +33,14 @@ export class ApiCaller {
             return this.httpClient.get(proxyUrl, { responseType: "text" })
                 .pipe(retry({ count: 5, delay: 1000 }))
                 .pipe(map((respXmlString: string) => {
-                    let parser = new fxml.XMLParser();
-                    let respObj = parser.parse(respXmlString);
-                    return respObj;
+                    let lastUpdatedMatch = /<lastUpdated>(.*)<\/lastUpdated>/.exec(respXmlString);
+                    let lastUpdated = lastUpdatedMatch ? lastUpdatedMatch[1] : '19700101000000';
+                    let versions = List(respXmlString.matchAll(/<version>(.*?)<\/version>/g)).map(match => match[1]).slice(1);
+                    
+                    return {
+                        lastUpdated: lastUpdated,
+                        versions: versions
+                    };
                 }));
         } else {
             return throwError(() => {
