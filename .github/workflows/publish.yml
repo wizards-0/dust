@@ -12,8 +12,8 @@ jobs:
       with:
         node-version: 23.x
     - name: Install dependencies
-      run: npm 
+      run: yarn install 
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+      run: yarn run playwright install --with-deps
     - name: Run Playwright tests
-      run: npx playwright test
+      run: yarn run doc-test
