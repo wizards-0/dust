@@ -51,3 +51,5 @@ node_modules/
 
 #Sonar
 /.scannerwork
+.npmrc
+src/styles/tailwind-build.scss
