@@ -1,3 +1,3 @@
 #!/bin/sh
 cd /workspace
-npm run dev
+yarn run dev

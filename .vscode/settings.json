@@ -2,5 +2,6 @@
     "cSpell.words": [
         "Luxon",
         "npmjs"
-    ]
+    ],
+    "npm.packageManager": "yarn"
 }

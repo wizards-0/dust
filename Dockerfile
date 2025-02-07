@@ -1,7 +1,8 @@
 FROM mcr.microsoft.com/playwright:v1.50.1-noble
 WORKDIR /workspace
 COPY package.json ./
-RUN npm install
+RUN npm install --global yarn &&\
+    yarn install
 COPY . .
 EXPOSE 4200
 EXPOSE 3040
