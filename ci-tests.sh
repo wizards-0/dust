@@ -1,5 +1,4 @@
 #!/bin/sh
-yarn run dev &
 yarn run coverage > test-result.txt &
 # Need this ugly code, because ng test gets stuck after completion. Halting the whole script. Unable to find fix.
 while [ 1 ]
