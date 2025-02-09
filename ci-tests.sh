@@ -1,7 +1,3 @@
-#!/bin/sh
-yarn install
-yarn run playwright install --with-deps
-yarn run dev &
 yarn run coverage > test-result.txt &
 # Need this ugly code, because ng test gets stuck after completion. Halting the whole script. Unable to find fix.
 while [ 1 ]
