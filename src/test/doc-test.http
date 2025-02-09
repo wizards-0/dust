@@ -1,7 +1,0 @@
-POST http://localhost:3030/doc
-content-type: text/plain
-
-{
-    "path": "/user-guide.md",
-    "content": "## Quick Start\n\n- Copy **package.json** or **build.gradle** or **settings.gradle** to clipboard from your source"
-}
