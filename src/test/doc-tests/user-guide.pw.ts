@@ -31,7 +31,7 @@ const quickStartTest = {
         await page.locator('ace-button#copyPackageJsonButton').click();
 
         const resultPackageJson = JSON.parse(await getClipboardText(page, context));
-        expect(resultPackageJson.dependencies.tslib).toBeTruthy();
+        expect(resultPackageJson.dependencies.tsliby).toBeTruthy();
     }
 }
 

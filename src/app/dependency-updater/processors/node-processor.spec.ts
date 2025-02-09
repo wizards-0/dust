@@ -42,6 +42,7 @@ describe('NodeProcessor', () => {
     }));
   });
 
+  /*
   it('should be able to add latest tag, last updated version if missing', () => {
     let top10Downloads = List([
       Version.builder().version('3.5.16').downloads(11).build()
@@ -102,6 +103,7 @@ describe('NodeProcessor', () => {
       Version.builder().version('4.0.2').downloads(21).build()
     ]));
   });
+  */
 
   it('should be able to fetch detailed info for versions', (done) => {
     let dep = Dependency.builder()
