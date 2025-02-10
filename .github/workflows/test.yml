@@ -2,7 +2,7 @@ name: Tests
 on:
   pull_request:
     types: [ opened, edited, reopened, review_requested ]
-    branches: [ master, develop ]
+    branches: [ master ]
 jobs:
   test:
     timeout-minutes: 60
