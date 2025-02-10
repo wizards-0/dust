@@ -1,5 +1,8 @@
 # Overview  <!-- {docsify-ignore-all} -->
-D.U.S.T. (Dependency Update Scanner Tool) is a tool for scanning updates for dependencies. Currently it can be used for updating dependencies of Node and Gradle. Details for what is supported can be found in specifications
+D.U.S.T. (Dependency Update Scanner Tool) is a tool for scanning updates for dependencies. 
+Currently it can be used for updating dependencies of Node and Gradle.
+
+<video src="/docs/dust-overview.mp4" controls="" style="width: 1024px;">Not Support</video>
 
 ## Documentation
 This documentation site is sectioned into three parts
