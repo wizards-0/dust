@@ -188,8 +188,8 @@ export function getVersionPrefix(version:string):string {
   return prefixMatch ? prefixMatch[1] : '';
 }
 
-export function matchVersion(dependency:Dependency,version:Version):boolean {
+export function matchVersion(dependency:Dependency,expectedVersion:Version):boolean {
   let versionToMatch = dependency.updateVersion ? dependency.updateVersion : dependency.currentVersion;
   let prefix = getVersionPrefix(versionToMatch);
-  return versionToMatch == (prefix+version.version);
+  return versionToMatch == (prefix+expectedVersion.version);
 }
