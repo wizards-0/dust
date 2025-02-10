@@ -32,7 +32,7 @@
     "@angular/platform-browser": "^19.1.4",
     "@angular/platform-browser-dynamic": "^19.1.4",
     "@angular/router": "^19.1.4",
-    "ace-common-components": "^19.0.3",
+    "ace-common-components": "^19.0.4",
     "ace-common-util": "^1.0.36",
     "immutable": "^5.0.3",
     "luxon": "^3.5.0",
