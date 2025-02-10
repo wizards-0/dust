@@ -66,5 +66,7 @@ and only solution is to re-run them
 - When implementing changes to application, relevant doc section and e2e change has to be implemented as well
 
 ## PR Guidelines
+- Should only include changes related to one bugfix / feature
+- For large features, divide commits into small testable chunks which are easier to review
 - After changes, code should still have 100% coverage in all categories (line, branch, functions, statements)
 - If changes are made to doc tests, relevant doc section also need to be updated.
