@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './src',  
+  testDir: './src',
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -14,7 +14,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 4 : 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.CI ? 'html' : 'line',
+  reporter: process.env.CI ? 'line' : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -32,10 +32,10 @@ export default defineConfig({
       testMatch: '**/*.pw.ts',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: './src/test/doc-tests/state/default.json'
+        storageState: './src/test/doc-tests/state/default.json',
       },
-      dependencies : ['doc-test-setup']
-    }
+      dependencies: ['doc-test-setup'],
+    },
 
     /*
     {
@@ -73,6 +73,6 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: 'http://127.0.0.1:4201',
-    reuseExistingServer: true
-  }
+    reuseExistingServer: true,
+  },
 });
