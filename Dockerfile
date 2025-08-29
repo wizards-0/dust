@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.50.1-noble
+FROM mcr.microsoft.com/playwright:v1.55.0-noble
 WORKDIR /workspace
 COPY package.json yarn.lock ./
 RUN npm install --global yarn &&\
